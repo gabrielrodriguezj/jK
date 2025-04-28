@@ -5,19 +5,10 @@ import mx.ipn.escom.k.core.VisitorStatement;
 
 import java.util.List;
 
-public class BlockStatement implements Statement {
-    private final List<Statement> statements;
-
-    public BlockStatement(List<Statement> statements) {
-        this.statements = statements;
-    }
+public record BlockStatement(List<Statement> statements) implements Statement {
 
     @Override
     public void accept(VisitorStatement visitor) {
         visitor.visitBlockStatement(this);
-    }
-
-    public List<Statement> getStatements(){
-        return statements;
     }
 }

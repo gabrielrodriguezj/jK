@@ -25,15 +25,15 @@ public class Function implements  Callable{
 
     @Override
     public int arity() {
-        return declaration.getParams().size();
+        return declaration.params().size();
     }
 
     @Override
     public Object call(List<Object> arguments) {
         Environment environment = new Environment(closure);
-        for (int i = 0; i < declaration.getParams().size(); i++) {
+        for (int i = 0; i < declaration.params().size(); i++) {
             environment.define(
-                    ((TokenId)declaration.getParams().get(i)).getId(),
+                    ((TokenId)declaration.params().get(i)).getId(),
                 arguments.get(i)
             );
         }
