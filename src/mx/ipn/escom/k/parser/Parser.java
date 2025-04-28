@@ -1,7 +1,10 @@
 package mx.ipn.escom.k.parser;
 
-import mx.ipn.escom.k.exception.ParserException;
-import mx.ipn.escom.k.interpreter.AST;
+import mx.ipn.escom.k.core.Expression;
+import mx.ipn.escom.k.core.exception.ParserException;
+import mx.ipn.escom.k.core.AST;
+import mx.ipn.escom.k.core.expression.*;
+import mx.ipn.escom.k.core.statement.*;
 import mx.ipn.escom.k.scanner.Scanner;
 import mx.ipn.escom.k.token.*;
 
@@ -84,7 +87,7 @@ public class Parser {
         match(TokenName.CLASS);
         match(TokenName.IDENTIFIER);
         Token name = previous();
-        ExprVariable superClass = classInher();
+        VariableExpression superClass = classInher();
         match(TokenName.LEFT_BRACE);
         List<Statement> attributesAndMethods = new ArrayList<>();
         classElement(attributesAndMethods);
@@ -93,12 +96,12 @@ public class Parser {
         return new StmtClass(name, superClass, attributesAndMethods);
     }
 
-    private ExprVariable classInher() throws ParserException {
+    private VariableExpression classInher() throws ParserException {
         if (preanalisis.getTokenName() == TokenName.EXTENDS) {
             match(TokenName.EXTENDS);
             match(TokenName.IDENTIFIER);
             Token nameSuperClass = previous();
-            return new ExprVariable(nameSuperClass);
+            return new VariableExpression(nameSuperClass);
         }
         return null;
     }
@@ -208,7 +211,7 @@ public class Parser {
 
         // "Desugar" condition
         if (condition == null) {
-            condition = new ExprLiteral(true);
+            condition = new LiteralExpression(true);
         }
         body = new StmtLoop(condition, body);
 
@@ -406,12 +409,12 @@ public class Parser {
             match(TokenName.EQUAL);
             Expression value = expression();
 
-            if (expr instanceof ExprVariable) {
-                Token name = ((ExprVariable) expr).name;
-                return new ExprAssign(name, value);
-            } else if (expr instanceof ExprGet) {
-                ExprGet get = (ExprGet) expr;
-                return new ExprSet(get.object, get.name, value);
+            if (expr instanceof VariableExpression) {
+                Token name = ((VariableExpression) expr).getName();
+                return new AssignmentExpression(name, value);
+            } else if (expr instanceof GetExpression) {
+                GetExpression get = (GetExpression) expr;
+                return new SetExpression(get.getObject(), get.getName(), value);
             }
 
             throw new ParserException("Assignment expression bad formed. Left side is non assignable");
@@ -430,7 +433,7 @@ public class Parser {
             match(TokenName.OR);
             Token operator = previous();
             Expression right = logicAnd();
-            Expression expr = new ExprLogical(left, operator, right);
+            Expression expr = new LogicalExpression(left, operator, right);
             return logicOrPrime(expr);
         }
 
@@ -447,7 +450,7 @@ public class Parser {
             match(TokenName.AND);
             Token operator = previous();
             Expression right = equality();
-            Expression expr = new ExprLogical(left, operator, right);
+            Expression expr = new LogicalExpression(left, operator, right);
             return logicAndPrime(expr);
         }
 
@@ -466,7 +469,7 @@ public class Parser {
                 match(preanalisis.getTokenName()); //!= o ==
                 Token operator = previous();
                 Expression right = comparison();
-                Expression expr = new ExprRelational(left, operator, right);
+                Expression expr = new RelationalExpression(left, operator, right);
                 return equalityPrime(expr);
         }
         return left;
@@ -486,7 +489,7 @@ public class Parser {
                 match(preanalisis.getTokenName()); // <, <=, >, >=
                 Token operator = previous();
                 Expression right = term();
-                Expression expr = new ExprRelational(left, operator, right);
+                Expression expr = new RelationalExpression(left, operator, right);
                 return comparisonPrime(expr);
         }
 
@@ -505,7 +508,7 @@ public class Parser {
                 match(preanalisis.getTokenName()); // MINUS o PLUS
                 Token operator = previous();
                 Expression right = factor();
-                Expression expr = new ExprBinary(left, operator, right);
+                Expression expr = new ArithmeticExpression(left, operator, right);
                 return termPrime(expr);
         }
         return left;
@@ -523,7 +526,7 @@ public class Parser {
                 match(preanalisis.getTokenName()); // SLASH o STAR
                 Token operator = previous();
                 Expression right = unary();
-                Expression expr = new ExprBinary(left, operator, right);
+                Expression expr = new ArithmeticExpression(left, operator, right);
                 return factorPrime(expr);
         }
         return left;
@@ -535,12 +538,12 @@ public class Parser {
                 match(TokenName.BANG);
                 Token operator = previous();
                 Expression expr = unary();
-                return new ExprUnary(operator, expr);
+                return new UnaryExpression(operator, expr);
             case MINUS:
                 match(TokenName.MINUS);
                 operator = previous();
                 expr = unary();
-                return new ExprUnary(operator, expr);
+                return new UnaryExpression(operator, expr);
             default:
                 return call();
         }
@@ -564,13 +567,13 @@ public class Parser {
                 match(TokenName.LEFT_PAREN);
                 List<Expression> lstArguments = arguments();
                 match(TokenName.RIGHT_PAREN);
-                Expression exprCall = new ExprCallFunction(expr, lstArguments);
+                Expression exprCall = new CallFunctionExpression(expr, lstArguments);
                 return callPrime(exprCall);
             case DOT:
                 match(TokenName.DOT);
                 match(TokenName.IDENTIFIER);
                 Token name = previous();
-                Expression exprGet = new ExprGet(expr, name);
+                Expression exprGet = new GetExpression(expr, name);
                 return callPrime(exprGet);
         }
         return expr;
@@ -580,35 +583,35 @@ public class Parser {
         switch (preanalisis.getTokenName()) {
             case TRUE:
                 match(TokenName.TRUE);
-                return new ExprLiteral(true);
+                return new LiteralExpression(true);
             case FALSE:
                 match(TokenName.FALSE);
-                return new ExprLiteral(false);
+                return new LiteralExpression(false);
             case NULL:
                 match(TokenName.NULL);
-                return new ExprLiteral(null);
+                return new LiteralExpression(null);
             case THIS:
                 match(TokenName.THIS);
-                return new ExprThis();
+                return new ThisExpression();
             case NUMBER:
                 match(TokenName.NUMBER);
-                return new ExprLiteral( ((TokenNumber)previous()).value);
+                return new LiteralExpression( ((TokenNumber)previous()).value);
             case STRING:
                 match(TokenName.STRING);
-                return new ExprLiteral(((TokenString)previous()).value);
+                return new LiteralExpression(((TokenString)previous()).value);
             case IDENTIFIER:
                 match(TokenName.IDENTIFIER);
-                return new ExprVariable(previous());
+                return new VariableExpression(previous());
             case LEFT_PAREN:
                 match(TokenName.LEFT_PAREN);
                 Expression expr = expression();
                 match(TokenName.RIGHT_PAREN);
-                return new ExprGrouping(expr);
+                return new GroupingExpression(expr);
             case SUPER:
                 match(TokenName.SUPER);
                 match(TokenName.DOT);
                 match(TokenName.IDENTIFIER);
-                return new ExprSuper(previous());
+                return new SuperExpression(previous());
         }
         throw new ParserException("Expression not expected");
     }
