@@ -94,7 +94,7 @@ public class Scanner {
         }
         
         throw new ScannerException(
-                "Lexical error: character '" + c + "' not valid. Line: " + line);
+                "Character '" + c + "' not valid. Line: " + line);
     }
 
     /**
@@ -201,7 +201,7 @@ public class Scanner {
         }
         else if(peek() == '.' && !Character.isDigit(peekNext())){
             throw new ScannerException(
-                    "Lexical error: number expected after decimal dot. Line: " + line
+                    "Digit expected after decimal dot. Line: " + line
             );
         }
 
@@ -221,7 +221,7 @@ public class Scanner {
         }
         else if(peek() == 'E' && !Character.isDigit(peekNext())){
             throw new ScannerException(
-                    "Lexical error: number expected after E. Line: " + line
+                    "Digit expected after E. Line: " + line
             );
         }
 
@@ -242,14 +242,14 @@ public class Scanner {
 
             if (peek() == '\n') {
                 throw new ScannerException(
-                        "Lexical error: string was not closed before new line. Line: " + line++
+                        "String was not closed before new line. Line: " + line++
                 );
             }
 
         }
         if (isAtEnd()) {
            throw new ScannerException(
-                    "Lexical error: string was not closed properly. Line: " + line
+                    "String was not closed properly. Line: " + line
             );
         }
 
