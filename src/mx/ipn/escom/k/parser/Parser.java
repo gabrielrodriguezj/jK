@@ -410,7 +410,7 @@ public class Parser {
             Expression value = expression();
 
             if (expr instanceof VariableExpression) {
-                Token name = ((VariableExpression) expr).name();
+                TokenId name = ((VariableExpression) expr).name();
                 return new AssignmentExpression(name, value);
             } else if (expr instanceof GetExpression) {
                 GetExpression get = (GetExpression) expr;

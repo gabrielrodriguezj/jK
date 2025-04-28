@@ -1,6 +1,5 @@
 package mx.ipn.escom.k.core;
 
-import mx.ipn.escom.k.token.Token;
 import mx.ipn.escom.k.token.TokenId;
 
 import java.util.HashMap;
@@ -20,40 +19,37 @@ public class Environment {
     }
 
     public Object get(TokenId name) {
-        //if (values.containsKey(name.getLexema())) {
-        //    return values.get(name.getLexema());
-        //}
+        if (values.containsKey(name.getId())) {
+            return values.get(name.getId());
+        }
 
-        // uso del enclosing para usar variables declaradas
-        // en un "scope" previo
+        // use of the enclosing to find variables declared
+        // in a previous (higher) scope
         if(enclosing != null){
             return enclosing.get(name);
         }
 
-        /*throw new RuntimeException(
-                "Variable '" + name.getLexema() +
-                        "'. no definida");*/
-
-        return null;
+        throw new RuntimeException(
+                "Identifier '" + name.getId() +
+                        "' not found");
     }
 
-    public void assign(Token name, Object value) {
-        /*if (values.containsKey(name.getLexema())) {
-            values.put(name.getLexema(), value);
+    public void assign(TokenId name, Object value) {
+        if (values.containsKey(name.getId())) {
+            values.put(name.getId(), value);
             return;
         }
 
-        // uso del enclosing para usar variables declaradas
-        // en un "scope" previo
+        // use of the enclosing to find variables declared
+        // in a previous (higher) scope
         if (enclosing != null) {
             enclosing.assign(name, value);
             return;
         }
 
         throw new RuntimeException(
-                "Variable '" + name.getLexema() +
-                        "'. no definida");*/
-        return;
+                "Identifier '" + name.getId() +
+                        "' not found");
     }
 
     public void define(String name, Object value) {
