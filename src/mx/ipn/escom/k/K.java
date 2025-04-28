@@ -1,5 +1,7 @@
 package mx.ipn.escom.k;
 
+import mx.ipn.escom.k.interpreter.AST;
+import mx.ipn.escom.k.parser.Parser;
 import mx.ipn.escom.k.scanner.Scanner;
 import mx.ipn.escom.k.token.Token;
 import mx.ipn.escom.k.token.TokenName;
@@ -14,78 +16,65 @@ import java.util.List;
 
 public class K {
 
-    static boolean existenErrores = false;
     //static Environment environment = new Environment();
 
-    public static void main(String[] args) throws IOException {
+    public static void main(String[] args) {
         if(args.length > 1) {
-            System.out.println("Uso correcto: k [archivo.k]");
+            System.out.println("More than the one argument expected. Usage : k [file.k]");
 
-            // Convención defininida en el archivo "system.h" de UNIX
+            // Code convention in the file "system.h" from UNIX
             System.exit(64);
-        } else if(args.length == 1){
-            ejecutarArchivo(args[0]);
+        }
+        else if(args.length == 1){
+            executeFile(args[0]);
         } else{
-            ejecutarPrompt();
+            executePrompt();
         }
     }
 
-    private static void ejecutarArchivo(String path) throws IOException {
-        byte[] bytes = Files.readAllBytes(Paths.get(path));
-        ejecutar(new String(bytes, Charset.defaultCharset()));
+    private static void executeFile(String path) {
+        byte[] bytes = null;
+        try {
+            bytes = Files.readAllBytes(Paths.get(path));
+        } catch (IOException e) {
+            System.err.println("Error reading file " + path);
+            System.exit(65);
+        }
 
-        // Se indica que existe un error
-        if(existenErrores) System.exit(65);
+        execute(new String(bytes, Charset.defaultCharset()));
     }
 
-    private static void ejecutarPrompt() throws IOException {
+    private static void executePrompt() {
         InputStreamReader input = new InputStreamReader(System.in);
         BufferedReader reader = new BufferedReader(input);
 
         for(;;){
             System.out.print(">>> ");
-            String linea = reader.readLine();
-            if(linea == null) break; // Presionar Ctrl + D
-            ejecutar(linea);
-            existenErrores = false;
+            String linea = null;
+
+            try {
+                linea = reader.readLine();
+            } catch (IOException e) {
+                System.err.println("Error reading from the console");
+                continue;
+            }
+
+            if(linea == null) break; // Press Ctrl + D
+            execute(linea);
         }
     }
 
-    private static void ejecutar(String source) {
+    private static void execute(String source) {
         try{
             Scanner scanner = new Scanner(source);
 
-            Token token;
-            do{
-                token = scanner.next();
-                System.out.println(token);
-
-            }while(token.getTokenName() != TokenName.EOF);
-
-            /*Parser parser = new Parser(tokens);
+            Parser parser = new Parser(scanner);
             AST ast = parser.parse();
-            ast.toInterpret(environment);*/
+            /*ast.toInterpret(environment);*/
         }
         catch (Exception ex){
             ex.printStackTrace();
         }
 
     }
-
-    /*
-    El método error se puede usar desde las distintas clases
-    para reportar los errores:
-    Interprete.error(....);
-     */
-    static void error(int linea, String mensaje){
-        reportar(linea, "", mensaje);
-    }
-
-    private static void reportar(int linea, String posicion, String mensaje){
-        System.err.println(
-                "[linea " + linea + "] Error " + posicion + ": " + mensaje
-        );
-        existenErrores = true;
-    }
-
 }

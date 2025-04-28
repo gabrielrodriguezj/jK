@@ -17,7 +17,7 @@ public class Parser {
     public Parser(Scanner scanner) {
         this.scanner = scanner;
         this.preanalisis = scanner.next();
-        this.preanalisis = null;
+        this.previous = null;
     }
 
     public AST parse() throws ParserException {
@@ -113,14 +113,6 @@ public class Parser {
             Statement method = funDeclaration();
             attributesAndMethods.add(method);
             classElement(attributesAndMethods);
-        }
-    }
-
-    private void functions(List<StmtFunction> functions) throws ParserException {
-        if (preanalisis.getTokenName() == TokenName.FUN) {
-            StmtFunction fun = (StmtFunction) funDeclaration();
-            functions.add(fun);
-            functions(functions);
         }
     }
 
@@ -422,7 +414,7 @@ public class Parser {
                 return new ExprSet(get.object, get.name, value);
             }
 
-            throw new ParserException("Assignacion expression bad formed. Left side is non assignable");
+            throw new ParserException("Assignment expression bad formed. Left side is non assignable");
 
         }
         return expr;
