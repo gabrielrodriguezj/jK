@@ -4,7 +4,6 @@ import mx.ipn.escom.k.exception.ScannerException;
 import mx.ipn.escom.k.token.*;
 
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 public class Scanner {
