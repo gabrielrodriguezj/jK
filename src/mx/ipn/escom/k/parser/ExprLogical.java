@@ -2,7 +2,7 @@ package mx.ipn.escom.k.parser;
 
 import mx.ipn.escom.k.exception.SemanticException;
 import mx.ipn.escom.k.interpreter.Environment;
-import mx.ipn.escom.k.tools.Token;
+import mx.ipn.escom.k.token.Token;
 
 public class ExprLogical extends Expression{
     final Expression left;
@@ -20,7 +20,7 @@ public class ExprLogical extends Expression{
         Object der = right.solve(environment);
 
         if(izq instanceof Boolean && der instanceof Boolean){
-            switch (operator.getTipo()){
+            switch (operator.getTokenName()){
                 case AND:
                     return (Boolean)izq && (Boolean)der;
                 case OR:
@@ -28,7 +28,7 @@ public class ExprLogical extends Expression{
             }
         }
         throw new SemanticException(
-                "El operador " + operator.getLexema() +
+                /*"El operador " + operator.getLexema() +**/
                 " sólo se aplica a operandos booleanos"
         );
     }

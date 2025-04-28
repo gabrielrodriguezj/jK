@@ -2,8 +2,8 @@ package mx.ipn.escom.k.parser;
 
 import mx.ipn.escom.k.exception.SemanticException;
 import mx.ipn.escom.k.interpreter.Environment;
-import mx.ipn.escom.k.tools.TipoToken;
-import mx.ipn.escom.k.tools.Token;
+import mx.ipn.escom.k.token.TokenName;
+import mx.ipn.escom.k.token.Token;
 
 public class ExprBinary extends Expression{
     final Expression left;
@@ -21,12 +21,12 @@ public class ExprBinary extends Expression{
         Object der = this.right.solve(environment);
 
         // Verificar los operadores aritméticos
-        if(operator.getTipo() == TipoToken.PLUS ||
-        operator.getTipo() == TipoToken.MINUS ||
-        operator.getTipo() == TipoToken.STAR ||
-        operator.getTipo() == TipoToken.SLASH) {
+        if(operator.getTokenName() == TokenName.PLUS ||
+        operator.getTokenName() == TokenName.MINUS ||
+        operator.getTokenName() == TokenName.STAR ||
+        operator.getTokenName() == TokenName.SLASH) {
 
-            if (operator.getTipo() == TipoToken.PLUS){
+            if (operator.getTokenName() == TokenName.PLUS){
                 if(izq instanceof Number && der instanceof Number){
 
                     if(izq instanceof Integer && der instanceof Integer){
@@ -46,7 +46,7 @@ public class ExprBinary extends Expression{
             else{
                 if(izq instanceof Number && der instanceof Number){
 
-                    if (operator.getTipo() == TipoToken.MINUS){
+                    if (operator.getTokenName() == TokenName.MINUS){
                         if(izq instanceof Integer && der instanceof Integer){
                             return (Integer)izq - (Integer)der;
                         }
@@ -55,7 +55,7 @@ public class ExprBinary extends Expression{
                         }
                     }
 
-                    if (operator.getTipo() == TipoToken.STAR){
+                    if (operator.getTokenName() == TokenName.STAR){
                         if(izq instanceof Integer && der instanceof Integer){
                             return (Integer)izq * (Integer)der;
                         }
@@ -64,7 +64,7 @@ public class ExprBinary extends Expression{
                         }
                     }
 
-                    if (operator.getTipo() == TipoToken.SLASH){
+                    if (operator.getTokenName() == TokenName.SLASH){
                         if(izq instanceof Integer && der instanceof Integer){
                             if((Integer)der != 0){
                                 return (Integer)izq / (Integer)der;

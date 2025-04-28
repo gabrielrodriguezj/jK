@@ -1,7 +1,7 @@
 package mx.ipn.escom.k.parser;
 
 import mx.ipn.escom.k.interpreter.Environment;
-import mx.ipn.escom.k.tools.Token;
+import mx.ipn.escom.k.token.Token;
 
 public class ExprGet extends Expression{
     final Expression object;

@@ -1,6 +1,6 @@
 package mx.ipn.escom.k.interpreter;
 
-import mx.ipn.escom.k.tools.Token;
+import mx.ipn.escom.k.token.Token;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -19,9 +19,9 @@ public class Environment {
     }
 
     public Object get(Token name) {
-        if (values.containsKey(name.getLexema())) {
-            return values.get(name.getLexema());
-        }
+        //if (values.containsKey(name.getLexema())) {
+        //    return values.get(name.getLexema());
+        //}
 
         // uso del enclosing para usar variables declaradas
         // en un "scope" previo
@@ -29,13 +29,15 @@ public class Environment {
             return enclosing.get(name);
         }
 
-        throw new RuntimeException(
+        /*throw new RuntimeException(
                 "Variable '" + name.getLexema() +
-                        "'. no definida");
+                        "'. no definida");*/
+
+        return null;
     }
 
     public void assign(Token name, Object value) {
-        if (values.containsKey(name.getLexema())) {
+        /*if (values.containsKey(name.getLexema())) {
             values.put(name.getLexema(), value);
             return;
         }
@@ -49,7 +51,8 @@ public class Environment {
 
         throw new RuntimeException(
                 "Variable '" + name.getLexema() +
-                        "'. no definida");
+                        "'. no definida");*/
+        return;
     }
 
     public void define(String name, Object value) {

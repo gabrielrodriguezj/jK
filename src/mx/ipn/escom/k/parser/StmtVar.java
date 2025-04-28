@@ -1,7 +1,7 @@
 package mx.ipn.escom.k.parser;
 
 import mx.ipn.escom.k.interpreter.Environment;
-import mx.ipn.escom.k.tools.Token;
+import mx.ipn.escom.k.token.Token;
 
 public class StmtVar extends Statement {
     final Token name;
@@ -18,6 +18,6 @@ public class StmtVar extends Statement {
             init = initializer.solve(environment);
         }
 
-        environment.define(name.getLexema(), init);
+        /*environment.define(name.getLexema(), init);*/
     }
 }

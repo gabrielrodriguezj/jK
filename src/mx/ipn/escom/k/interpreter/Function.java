@@ -1,6 +1,7 @@
 package mx.ipn.escom.k.interpreter;
 
 import mx.ipn.escom.k.parser.StmtFunction;
+import mx.ipn.escom.k.token.TokenId;
 
 import java.util.List;
 
@@ -32,7 +33,7 @@ public class Function implements  Callable{
         Environment environment = new Environment(closure);
         for (int i = 0; i < declaration.getParams().size(); i++) {
             environment.define(
-                declaration.getParams().get(i).getLexema(),
+                    ((TokenId)declaration.getParams().get(i)).getId(),
                 arguments.get(i)
             );
         }

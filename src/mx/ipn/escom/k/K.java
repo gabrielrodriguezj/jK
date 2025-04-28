@@ -1,10 +1,8 @@
 package mx.ipn.escom.k;
 
-import mx.ipn.escom.k.interpreter.AST;
-import mx.ipn.escom.k.interpreter.Environment;
-import mx.ipn.escom.k.parser.Parser;
 import mx.ipn.escom.k.scanner.Scanner;
-import mx.ipn.escom.k.tools.Token;
+import mx.ipn.escom.k.token.Token;
+import mx.ipn.escom.k.token.TokenName;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -17,7 +15,7 @@ import java.util.List;
 public class K {
 
     static boolean existenErrores = false;
-    static Environment environment = new Environment();
+    //static Environment environment = new Environment();
 
     public static void main(String[] args) throws IOException {
         if(args.length > 1) {
@@ -56,15 +54,17 @@ public class K {
     private static void ejecutar(String source) {
         try{
             Scanner scanner = new Scanner(source);
-            List<Token> tokens = scanner.scan();
 
-            /*for(Token token : tokens){
+            Token token;
+            do{
+                token = scanner.next();
                 System.out.println(token);
-            }*/
 
-            Parser parser = new Parser(tokens);
+            }while(token.getTokenName() != TokenName.EOF);
+
+            /*Parser parser = new Parser(tokens);
             AST ast = parser.parse();
-            ast.toInterpret(environment);
+            ast.toInterpret(environment);*/
         }
         catch (Exception ex){
             ex.printStackTrace();

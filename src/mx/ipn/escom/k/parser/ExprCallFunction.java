@@ -2,7 +2,7 @@ package mx.ipn.escom.k.parser;
 
 import mx.ipn.escom.k.interpreter.Environment;
 import mx.ipn.escom.k.interpreter.Function;
-import mx.ipn.escom.k.tools.Token;
+import mx.ipn.escom.k.token.Token;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -30,7 +30,7 @@ public class ExprCallFunction extends Expression{
 
         if(!(function instanceof Function)){
             throw new RuntimeException(
-                "No existe la función '" + name.getLexema() + "'."
+                "No existe la función '" + /*name.getLexema() +*/ "'."
             );
         }
 

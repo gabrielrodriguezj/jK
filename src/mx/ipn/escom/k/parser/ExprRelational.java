@@ -2,8 +2,8 @@ package mx.ipn.escom.k.parser;
 
 import mx.ipn.escom.k.exception.SemanticException;
 import mx.ipn.escom.k.interpreter.Environment;
-import mx.ipn.escom.k.tools.TipoToken;
-import mx.ipn.escom.k.tools.Token;
+import mx.ipn.escom.k.token.TokenName;
+import mx.ipn.escom.k.token.Token;
 
 public class ExprRelational extends Expression{
     final Expression left;
@@ -21,31 +21,31 @@ public class ExprRelational extends Expression{
         Object der = this.right.solve(environment);
 
         // Verificar los operadores relacionales de comparación
-        if(operator.getTipo() == TipoToken.EQUAL_EQUAL ||
-                operator.getTipo() == TipoToken.BANG_EQUAL) {
+        if(operator.getTokenName() == TokenName.EQUAL_EQUAL ||
+                operator.getTokenName() == TokenName.BANG_EQUAL) {
 
             if((izq instanceof Number && der instanceof Number) ||
                     (izq instanceof String && der instanceof String) ||
                     (izq instanceof Boolean && der instanceof Boolean)){
 
-                if(operator.getTipo() == TipoToken.EQUAL_EQUAL){
+                if(operator.getTokenName() == TokenName.EQUAL_EQUAL){
                     return izq.equals(der);
                 }
                 return !izq.equals(der);
             }
             throw new SemanticException(
-                    "El operador " + operator.getLexema() +
+                    "El operador " + operator.getTokenName() +
                             "No se puede aplicar a distintos tipos"
             );
         }
 
         // Verificar los operadores relacionales
-        if(operator.getTipo() == TipoToken.LESS ||
-                operator.getTipo() == TipoToken.LESS_EQUAL ||
-                operator.getTipo() == TipoToken.GREATER ||
-                operator.getTipo() == TipoToken.GREATER_EQUAL) {
+        if(operator.getTokenName() == TokenName.LESS ||
+                operator.getTokenName() == TokenName.LESS_EQUAL ||
+                operator.getTokenName() == TokenName.GREATER ||
+                operator.getTokenName() == TokenName.GREATER_EQUAL) {
             if(izq instanceof Number && der instanceof Number){
-                switch (operator.getTipo()){
+                switch (operator.getTokenName()){
                     case LESS:
                         return (Double)izq < (Double)der;
                     case LESS_EQUAL:
@@ -57,7 +57,7 @@ public class ExprRelational extends Expression{
                 }
             }
             throw new SemanticException(
-                    "El operador " + operator.getLexema() +
+                    "El operador " + operator.getTokenName() +
                             " no se puede aplicar a valores" +
                             " no booleanos"
             );
