@@ -55,7 +55,9 @@ public class Scanner {
         // must skips "whitespaces"
         skipWhitespace();
 
-        if (isAtEnd()) return new TokenEOF(line);
+        if (isAtEnd()) {
+            return new TokenEOF(line);
+        }
 
         char c = advance();
 
@@ -92,7 +94,7 @@ public class Scanner {
         }
         
         throw new ScannerException(
-                "Lexical error: character '" + peek() + "' not valid. Line: " + line);
+                "Lexical error: character '" + c + "' not valid. Line: " + line);
     }
 
     /**
@@ -123,19 +125,19 @@ public class Scanner {
                         advance(); // consume '/'
                         advance(); // consume '*'
 
-                        // A multiline comment ends with "*/" sequence
-                        boolean openComment = true;
+                        // A multiline comment ends with a "* /" sequence
                         do {
-                            if (peek() == '*' && !isAtEnd())
+                            if (peek() == '*' && peekNext() == '/')
                             {
                                 advance(); // consume the '*'
+                                advance(); // consume the '/'
+                                break;
                             }
-                            if (peek() == '/') {
-                                openComment = false;
-                            }
-                            advance(); // consume the '/' or any other symbol
+                            advance(); // consume any symbol
+                            if(peek() == '\n') line++;
+
                         // The multiline comments still open
-                        }while (openComment);
+                        }while (!isAtEnd());
 
                     }
                     else {
@@ -154,9 +156,9 @@ public class Scanner {
         while (Character.isAlphabetic(peek()) || Character.isDigit(peek()) || peek() == '_') {
             advance();
         }
-        int end = current - 1;
+        int end = current;
 
-        String lexeme = source.substring(begin, end - begin + 1);
+        String lexeme = source.substring(begin, end);
 
         if(!keyWords.containsKey(lexeme) && !operators.containsKey(lexeme) && !constants.containsKey(lexeme)) {
             return new TokenId(lexeme, line);
@@ -197,6 +199,11 @@ public class Scanner {
                 advance();
             }
         }
+        else if(peek() == '.' && !Character.isDigit(peekNext())){
+            throw new ScannerException(
+                    "Lexical error: number expected after decimal dot. Line: " + line
+            );
+        }
 
         if(peek() == 'E' && (peekNext() == '+' || peekNext() == '-' || Character.isDigit(peekNext()))){
             // Consume the symbol "E" for scientific notation
@@ -208,10 +215,8 @@ public class Scanner {
             }
 
             // Reading the numbers of the exponent
-            if(Character.isDigit(peekNext())){
-                while (Character.isDigit(peek())){
-                    advance();
-                }
+            while (Character.isDigit(peek())){
+                advance();
             }
         }
         else if(peek() == 'E' && !Character.isDigit(peekNext())){
@@ -220,9 +225,9 @@ public class Scanner {
             );
         }
 
-        int end = current - 1;
+        int end = current;
 
-        String lexeme = source.substring(begin, end-begin + 1);
+        String lexeme = source.substring(begin, end);
 
         // TODO: Detect the right type of data: int, double, float
         double value = Double.parseDouble(lexeme);
@@ -233,8 +238,14 @@ public class Scanner {
         int begin = current-1;
 
         while (peek() != '"' && !isAtEnd()) {
-            if (peek() == '\n') line++;
             advance();
+
+            if (peek() == '\n') {
+                throw new ScannerException(
+                        "Lexical error: string was not closed before new line. Line: " + line++
+                );
+            }
+
         }
         if (isAtEnd()) {
            throw new ScannerException(
@@ -245,10 +256,13 @@ public class Scanner {
         // Consume the '"' that close the string
         advance();
 
-        int end = current - 1;
+        int end = current;
 
-        String lexeme = source.substring(begin, end - begin + 1);
-        return  new TokenString(lexeme, line);
+        // The lexeme of a string is the string value with the quotes
+        // In this case, we remove the quotes from the lexeme for getting
+        // the real value of the string
+        String strValue = source.substring(begin, end);
+        return  new TokenString(strValue, line);
     }
 
 
@@ -277,6 +291,7 @@ public class Scanner {
 
     char  peekNext() {
         if (isAtEnd()) return '\0';
+        if(current + 1 >= source.length()) return '\0';
         return source.charAt(current + 1);
     }
 }
