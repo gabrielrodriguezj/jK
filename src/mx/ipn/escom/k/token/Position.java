@@ -1,4 +1,4 @@
-package mx.ipn.escom.k.tools;
+package mx.ipn.escom.k.token;
 
 public class Position {
     final int line;

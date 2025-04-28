@@ -1,6 +1,6 @@
-package mx.ipn.escom.k.tools;
+package mx.ipn.escom.k.token;
 
-public enum TipoToken {
+public enum TokenName {
     // Tokens de un sólo caracter
     LEFT_PAREN, RIGHT_PAREN, LEFT_BRACE, RIGHT_BRACE,
     COMMA, DOT, MINUS, PLUS, SEMICOLON, SLASH, STAR,
