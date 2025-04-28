@@ -1,11 +1,9 @@
 package mx.ipn.escom.k.interpreter;
 
-import mx.ipn.escom.k.core.Environment;
-import mx.ipn.escom.k.core.Expression;
-import mx.ipn.escom.k.core.Function;
-import mx.ipn.escom.k.core.VisitorExpression;
+import mx.ipn.escom.k.core.*;
 import mx.ipn.escom.k.core.exception.SemanticException;
 import mx.ipn.escom.k.core.expression.*;
+import mx.ipn.escom.k.core.statement.*;
 import mx.ipn.escom.k.token.Token;
 import mx.ipn.escom.k.token.TokenId;
 import mx.ipn.escom.k.token.TokenName;
@@ -13,7 +11,7 @@ import mx.ipn.escom.k.token.TokenName;
 import java.util.ArrayList;
 import java.util.List;
 
-public class Interpreter implements VisitorExpression {
+public class Interpreter implements VisitorExpression, VisitorStatement {
 
     Environment environment;
 
@@ -267,5 +265,128 @@ public class Interpreter implements VisitorExpression {
     @Override
     public Object visitVariableExpression(VariableExpression expression) {
         return environment.get(expression.name());
+    }
+
+    @Override
+    public void visitBlockStatement(BlockStatement statement) {
+        /*
+        @Override
+    public void execute(Environment environment) {
+        Environment local = new Environment(environment);
+
+        for(Statement stmt : statements){
+            stmt.execute(local);
+        }
+    }
+         */
+    }
+
+    @Override
+    public void visitClassStatement(ClassStatement statement) {
+/*
+
+    @Override
+    public void execute(Environment environment) {
+        throw new UnsupportedOperationException();
+    }
+
+ */
+    }
+
+    @Override
+    public void visitExpressionStatement(ExpressionStatement statement) {
+/*
+public void execute(Environment environment){
+        // expression.solve(environment);
+    }
+ */
+    }
+
+    @Override
+    public void visitFunctionStatement(FunctionStatement statement) {
+/*
+
+@Override
+    public void execute(Environment environment) {
+        Function function = new Function(this, environment, false);
+        environment.define(name.getId(), function);
+    }
+
+ */
+    }
+
+    @Override
+    public void visitIfStatement(IfStatement statement) {
+/*
+
+@Override
+    public void execute(Environment environment) {
+        /*Object resCondition = condition.solve(environment);
+        if(!(resCondition instanceof Boolean)){
+            throw new RuntimeException(
+                    "La condición no es válida");
+        }
+
+        if(((Boolean)resCondition) == true){
+            thenBranch.execute(environment);
+        }
+        else if(elseBranch != null){
+            elseBranch.execute(environment);
+        }*/
+
+    }
+
+    @Override
+    public void visitLoopStatement(LoopStatement statement) {
+/*
+
+@Override
+    public void execute(Environment environment) {
+        /*Object resCondition = condition.solve(environment);
+        if(!(resCondition instanceof Boolean)){
+            throw new RuntimeException(
+                    "La condición no es válida");
+        }
+
+        while (((Boolean)resCondition) == true){
+            body.execute(environment);
+            resCondition = condition.solve(environment);
+        }*/
+
+    }
+
+    @Override
+    public void visitPrintStatement(PrintStatement statement) {
+/*
+ public void execute(Environment environment){
+        /*Object res = expression.solve(environment);
+        System.out.println(res);*/
+
+    }
+
+    @Override
+    public void visitReturnStatement(ReturnStatement statement) {
+/*
+  @Override
+    public void execute(Environment environment) {
+        throw new UnsupportedOperationException();
+    }
+
+
+
+ */
+    }
+
+    @Override
+    public void visitVarStatement(VarStatement statement) {
+/*
+
+public void execute(Environment environment){
+        /*Object init = null;
+        if(initializer != null){
+            init = initializer.solve(environment);
+        }*/
+
+        /*environment.define(name.getLexema(), init);*/
     }
 }

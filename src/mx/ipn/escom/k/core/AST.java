@@ -1,6 +1,6 @@
 package mx.ipn.escom.k.core;
 
-import mx.ipn.escom.k.core.statement.Statement;
+import mx.ipn.escom.k.core.Statement;
 
 import java.util.List;
 
@@ -13,7 +13,7 @@ public class AST {
 
     public void toInterpret(Environment environment){
         for(Statement stmt : statements){
-            stmt.execute(environment);
+            //stmt.execute(environment);
         }
     }
 

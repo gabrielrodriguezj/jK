@@ -1,18 +1,18 @@
 package mx.ipn.escom.k.core;
 
-import mx.ipn.escom.k.core.statement.StmtFunction;
+import mx.ipn.escom.k.core.statement.FunctionStatement;
 import mx.ipn.escom.k.token.TokenId;
 
 import java.util.List;
 
 public class Function implements  Callable{
 
-    private final StmtFunction declaration;
+    private final FunctionStatement declaration;
     private final Environment closure;
     private final boolean isInitializer;
 
-    public Function(StmtFunction declaration, Environment closure,
-                boolean isInitializer) {
+    public Function(FunctionStatement declaration, Environment closure,
+                    boolean isInitializer) {
         this.isInitializer = isInitializer;
         this.closure = closure;
         this.declaration = declaration;
@@ -38,7 +38,7 @@ public class Function implements  Callable{
             );
         }
 
-        declaration.getBody().execute(environment);
+        // // //declaration.getBody().execute(environment);
         try{
          //declaration.execute(environment);
         }

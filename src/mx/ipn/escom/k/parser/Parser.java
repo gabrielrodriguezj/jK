@@ -1,6 +1,7 @@
 package mx.ipn.escom.k.parser;
 
 import mx.ipn.escom.k.core.Expression;
+import mx.ipn.escom.k.core.Statement;
 import mx.ipn.escom.k.core.exception.ParserException;
 import mx.ipn.escom.k.core.AST;
 import mx.ipn.escom.k.core.expression.*;
@@ -93,7 +94,7 @@ public class Parser {
         classElement(attributesAndMethods);
         match(TokenName.RIGHT_BRACE);
 
-        return new StmtClass(name, superClass, attributesAndMethods);
+        return new ClassStatement(name, superClass, attributesAndMethods);
     }
 
     private VariableExpression classInher() throws ParserException {
@@ -128,7 +129,7 @@ public class Parser {
         match(TokenName.RIGHT_PAREN);
         Statement body = block();
 
-        return new StmtFunction(name, parameters, (StmtBlock) body);
+        return new FunctionStatement(name, parameters, (BlockStatement) body);
     }
 
     private Statement varDeclaration() throws ParserException {
@@ -138,7 +139,7 @@ public class Parser {
         Expression init = varInit();
         match(TokenName.SEMICOLON);
 
-        return new StmtVar(name, init);
+        return new VarStatement(name, init);
     }
 
     private Expression varInit() throws ParserException {
@@ -187,7 +188,7 @@ public class Parser {
     private Statement exprStatement() throws ParserException {
         Expression expr = expression();
         match(TokenName.SEMICOLON);
-        return new StmtExpression(expr);
+        return new ExpressionStatement(expr);
     }
 
     private Statement forStatement() throws ParserException {
@@ -201,10 +202,10 @@ public class Parser {
 
         // "Desugar" increment
         if (increment != null) {
-            body = new StmtBlock(
+            body = new BlockStatement(
                     Arrays.asList(
                             body,
-                            new StmtExpression(increment)
+                            new ExpressionStatement(increment)
                     )
             );
         }
@@ -213,11 +214,11 @@ public class Parser {
         if (condition == null) {
             condition = new LiteralExpression(true);
         }
-        body = new StmtLoop(condition, body);
+        body = new LoopStatement(condition, body);
 
         // "Desugar" initialization
         if (initializer != null) {
-            body = new StmtBlock(Arrays.asList(initializer, body));
+            body = new BlockStatement(Arrays.asList(initializer, body));
         }
         return body;
     }
@@ -308,7 +309,7 @@ public class Parser {
         Statement thenBranch = statement();
         Statement elseBranch = elseStatement();
 
-        return new StmtIf(condition, thenBranch, elseBranch);
+        return new IfStatement(condition, thenBranch, elseBranch);
     }
 
     private Statement elseStatement() throws ParserException {
@@ -326,7 +327,7 @@ public class Parser {
         match(TokenName.RIGHT_PAREN);
         Statement body = statement();
 
-        return new StmtLoop(condition, body);
+        return new LoopStatement(condition, body);
     }
 
     private Statement printStatement() throws ParserException {
@@ -334,7 +335,7 @@ public class Parser {
         Expression expr = expression();
         match(TokenName.SEMICOLON);
 
-        return new StmtPrint(expr);
+        return new PrintStatement(expr);
     }
 
     private Statement returnStatement() throws ParserException {
@@ -342,7 +343,7 @@ public class Parser {
         Expression value = returnExpressionOptional();
         match(TokenName.SEMICOLON);
 
-        return new StmtReturn(value);
+        return new ReturnStatement(value);
     }
 
     private Expression returnExpressionOptional() throws ParserException {
@@ -369,7 +370,7 @@ public class Parser {
         declaration(statements);
         match(TokenName.RIGHT_BRACE);
 
-        return new StmtBlock(statements);
+        return new BlockStatement(statements);
     }
 
     /*
