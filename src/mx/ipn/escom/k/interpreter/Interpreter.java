@@ -1,389 +1,271 @@
 package mx.ipn.escom.k.interpreter;
 
+import mx.ipn.escom.k.core.Environment;
+import mx.ipn.escom.k.core.Expression;
+import mx.ipn.escom.k.core.Function;
 import mx.ipn.escom.k.core.VisitorExpression;
+import mx.ipn.escom.k.core.exception.SemanticException;
 import mx.ipn.escom.k.core.expression.*;
+import mx.ipn.escom.k.token.Token;
+import mx.ipn.escom.k.token.TokenId;
+import mx.ipn.escom.k.token.TokenName;
+
+import java.util.ArrayList;
+import java.util.List;
 
 public class Interpreter implements VisitorExpression {
+
+    Environment environment;
+
+    public Interpreter(Environment environment) {
+        this.environment = environment;
+    }
+
+    private Object evaluate(Expression expression){
+        return expression.accept(this);
+    }
 
     @Override
     public Object visitAssignmentExpression(AssignmentExpression expression) {
 
-        /*Object res = value.solve(environment);
-        environment.assign(name, res);
-        */
-        return null;
+        Object value = evaluate(expression.value());
+        environment.assign(expression.name(), value);
+
+        return value;
     }
 
     @Override
     public Object visitArithmeticExpression(ArithmeticExpression expression) {
-        /*
-        Object izq = this.left.solve(environment);
-        Object der = this.right.solve(environment);
 
-        // Verificar los operadores aritméticos
-        if(operator.getTokenName() == TokenName.PLUS ||
-        operator.getTokenName() == TokenName.MINUS ||
-        operator.getTokenName() == TokenName.STAR ||
-        operator.getTokenName() == TokenName.SLASH) {
+        Object left = evaluate(expression.left());
+        Object right = evaluate(expression.right());
 
-            if (operator.getTokenName() == TokenName.PLUS){
-                if(izq instanceof Number && der instanceof Number){
+        // Verify operators
+        if(expression.operator().getTokenName() == TokenName.PLUS ||
+                expression.operator().getTokenName() == TokenName.MINUS ||
+                expression.operator().getTokenName() == TokenName.STAR ||
+                expression.operator().getTokenName() == TokenName.SLASH) {
 
-                    if(izq instanceof Integer && der instanceof Integer){
-                        return (Integer)izq + (Integer)der;
+            if (expression.operator().getTokenName() == TokenName.PLUS){
+                if(left instanceof Number && right instanceof Number){
+
+                    if(left instanceof Integer && right instanceof Integer){
+                        return (Integer)left + (Integer)right;
                     }
                     else{
-                        return (Double)izq + (Double)der;
+                        return (Double)left + (Double)right;
                     }
                 }
-                else if(izq instanceof String && der instanceof String){
-                    return (String)izq + (String)der;
+                else if(left instanceof String && right instanceof String){
+                    return (String)left + (String)right;
                 }
                 throw new SemanticException(
-                        "Incompatibilidad de tipos con el operador +"
+                        "Operator '+' cannot be applied to the given operands"
                 );
             }
             else{
-                if(izq instanceof Number && der instanceof Number){
+                if(left instanceof Number && right instanceof Number){
 
-                    if (operator.getTokenName() == TokenName.MINUS){
-                        if(izq instanceof Integer && der instanceof Integer){
-                            return (Integer)izq - (Integer)der;
+                    if (expression.operator().getTokenName() == TokenName.MINUS){
+                        if(left instanceof Integer && right instanceof Integer){
+                            return (Integer)left - (Integer)right;
                         }
                         else{
-                            return (Double)izq - (Double)der;
+                            return (Double)left - (Double)right;
                         }
                     }
 
-                    if (operator.getTokenName() == TokenName.STAR){
-                        if(izq instanceof Integer && der instanceof Integer){
-                            return (Integer)izq * (Integer)der;
+                    if (expression.operator().getTokenName() == TokenName.STAR){
+                        if(left instanceof Integer && right instanceof Integer){
+                            return (Integer)left * (Integer)right;
                         }
                         else{
-                            return (Double)izq * (Double)der;
+                            return (Double)left * (Double)right;
                         }
                     }
 
-                    if (operator.getTokenName() == TokenName.SLASH){
-                        if(izq instanceof Integer && der instanceof Integer){
-                            if((Integer)der != 0){
-                                return (Integer)izq / (Integer)der;
+                    if (expression.operator().getTokenName() == TokenName.SLASH){
+                        if(left instanceof Integer && right instanceof Integer){
+                            if((Integer)right != 0){
+                                return (Integer)left / (Integer)right;
                             }
-                            throw new ArithmeticException("Error al dividir por 0");
+
+                            throw new ArithmeticException("Division by zero");
                         }
                         else{
 
-                            if((Double)der != 0){
-                                return (Double)izq / (Double)der;
+                            if((Double)right != 0){
+                                return (Double)left / (Double)right;
                             }
-                            throw new ArithmeticException("Error al dividir por 0");
+                            throw new ArithmeticException("Division by zero");
                         }
                     }
 
                 }
 
                 throw new SemanticException(
-                        "Incompatibilidad de tipos con el operador +"
+                        "Incompatible types for operator " + expression.operator()
                 );
             }
         }
 
-        throw new SemanticException("Operación no válida");
-    }
-
-         */
-
-
-        return null;
+        throw new SemanticException("Operation not valid");
     }
 
     @Override
     public Object visitCallFunctionExpression(CallFunctionExpression expression) {
-
-/*
-
-
-@Override
-    public Object solve(Environment environment) {
-        if(!(callee instanceof VariableExpression)){
+        if(!(expression.callee() instanceof VariableExpression)){
             throw new RuntimeException(
-                "Expresión no corresponde a llamada a función"
+                    "Not a valid function call");
+        }
+
+        Token name = ((VariableExpression)expression.callee()).name();
+        if(!(name instanceof TokenId)){
+            throw new RuntimeException(
+                    "Not a valid function call");
+        }
+
+        TokenId nameFunction = (TokenId)name;
+
+        Object function = environment.get(nameFunction);
+
+        if(!(function instanceof Function)) {
+            throw new RuntimeException(
+                    "Function '" + nameFunction.getId() + "'not found"
             );
         }
-        Token name = ((VariableExpression)callee).name;
-        Object function = environment.get(name);
 
-        if(!(function instanceof Function)){
-            throw new RuntimeException(
-                "No existe la función '" + /*name.getLexema() +* / "'."
-        );
-        }
-
-List<Object> args = new ArrayList<>();
-        for(Expression1 expr : arguments){
-Object res = expr.solve(environment);
+        List<Object> args = new ArrayList<>();
+        for(Expression expr : expression.arguments()){
+            Object res = evaluate(expr);
             args.add(res);
         }
 
-                ((Function)function).call(args);
-
-        return null;
-                }
-
- */
-
-
-
+        ((Function)function).call(args);
 
         return null;
     }
 
     @Override
     public Object visitGetExpression(GetExpression expression) {
-        /*
-
- @Override
-    public Object solve(Environment environment) {
         throw new UnsupportedOperationException();
-    }
-
-
-
- */
-
-
-        return null;
     }
 
     @Override
     public Object visitGroupingExpression(GroupingExpression expression) {
-
-        /*
-
-public Object solve(Environment environment){
-        return this.expression.solve(environment);
-    }
-
-
- */
-
-
-        return null;
+        return evaluate(expression.expression());
     }
 
     @Override
     public Object visitLiteralExpression(LiteralExpression expression) {
-
-
-/*
-
-
-
-    public Object solve(Environment environment){
-        return this.value;
-    }
-
- */
-
-        return null;
+        return expression.value();
     }
 
     @Override
     public Object visitLogicalExpression(LogicalExpression expression) {
+        Object left = evaluate(expression.left());
+        Object right = evaluate(expression.right());
 
-
-/*
-
-public Object solve(Environment environment){
-        Object izq = left.solve(environment);
-        Object der = right.solve(environment);
-
-        if(izq instanceof Boolean && der instanceof Boolean){
-            switch (operator.getTokenName()){
+        if(left instanceof Boolean && right instanceof Boolean){
+            switch (expression.operator().getTokenName()){
                 case AND:
-                    return (Boolean)izq && (Boolean)der;
+                    return (Boolean)left && (Boolean)right;
                 case OR:
-                    return (Boolean)izq || (Boolean)der;
+                    return (Boolean)left || (Boolean)right;
             }
         }
         throw new SemanticException(
-                /*"El operador " + operator.getLexema() +** /
-                " sólo se aplica a operandos booleanos"
-                        );
-                        }
-
-
- */
-
-
-
-        return null;
+                "Operands not valid for operator '" + expression.operator().getTokenName() + "'");
     }
 
     @Override
     public Object visitRelationalExpression(RelationalExpression expression) {
+        Object left = evaluate(expression.left());
+        Object right = evaluate(expression.right());
 
-/*
+        // Are != or == operators?
+        if(expression.operator().getTokenName() == TokenName.EQUAL_EQUAL ||
+                expression.operator().getTokenName() == TokenName.BANG_EQUAL) {
 
+            if((left instanceof Number && right instanceof Number) ||
+                    (left instanceof String && right instanceof String) ||
+                    (left instanceof Boolean && right instanceof Boolean)){
 
-public Object solve(Environment environment){
-        Object izq = this.left.solve(environment);
-        Object der = this.right.solve(environment);
-
-        // Verificar los operadores relacionales de comparación
-        if(operator.getTokenName() == TokenName.EQUAL_EQUAL ||
-                operator.getTokenName() == TokenName.BANG_EQUAL) {
-
-            if((izq instanceof Number && der instanceof Number) ||
-                    (izq instanceof String && der instanceof String) ||
-                    (izq instanceof Boolean && der instanceof Boolean)){
-
-                if(operator.getTokenName() == TokenName.EQUAL_EQUAL){
-                    return izq.equals(der);
+                if(expression.operator().getTokenName() == TokenName.EQUAL_EQUAL){
+                    return left.equals(right);
                 }
-                return !izq.equals(der);
+                return !left.equals(right);
             }
             throw new SemanticException(
-                    "El operador " + operator.getTokenName() +
-                            "No se puede aplicar a distintos tipos"
+                    "Invalid types for operator '" + expression.operator().getTokenName() +
+                            "'"
             );
         }
 
-        // Verificar los operadores relacionales
-        if(operator.getTokenName() == TokenName.LESS ||
-                operator.getTokenName() == TokenName.LESS_EQUAL ||
-                operator.getTokenName() == TokenName.GREATER ||
-                operator.getTokenName() == TokenName.GREATER_EQUAL) {
-            if(izq instanceof Number && der instanceof Number){
-                switch (operator.getTokenName()){
+        // Check relational operators
+        if(expression.operator().getTokenName() == TokenName.LESS ||
+                expression.operator().getTokenName() == TokenName.LESS_EQUAL ||
+                expression.operator().getTokenName() == TokenName.GREATER ||
+                expression.operator().getTokenName() == TokenName.GREATER_EQUAL) {
+            if(left instanceof Number && right instanceof Number){
+                switch (expression.operator().getTokenName()){
                     case LESS:
-                        return (Double)izq < (Double)der;
+                        return (Double)left < (Double)right;
                     case LESS_EQUAL:
-                        return (Double)izq <= (Double)der;
+                        return (Double)left <= (Double)right;
                     case GREATER:
-                        return (Double)izq > (Double)der;
+                        return (Double)left > (Double)right;
                     case GREATER_EQUAL:
-                        return (Double)izq >= (Double)der;
+                        return (Double)left >= (Double)right;
                 }
             }
             throw new SemanticException(
-                    "El operador " + operator.getTokenName() +
-                            " no se puede aplicar a valores" +
-                            " no booleanos"
+                    "El operator '" + expression.operator().getTokenName() +
+                            "' is valid for non-boolean operands"
             );
         }
-        throw new SemanticException("Operación no válida");
-    }
-
-
-
- */
-
-
-        return null;
+        throw new SemanticException("Operation not valid");
     }
 
     @Override
     public Object visitSetExpression(SetExpression expression) {
-
-/*
-
-    @Override
-    public Object solve(Environment environment) {
         throw new UnsupportedOperationException();
-    }
-
-
-
- */
-
-
-
-        return null;
     }
 
     @Override
     public Object visitSuperExpression(SuperExpression expression) {
-
-
-/*
-
-
-    @Override
-    public Object solve(Environment environment) {
         throw new UnsupportedOperationException();
-    }
-
-
- */
-
-        return null;
     }
 
     @Override
     public Object visitThisExpression(ThisExpression expression) {
-
-
-/*
-
-
-    @Override
-    public Object solve(Environment environment) {
         throw new UnsupportedOperationException();
-    }
-
- */
-
-        return null;
     }
 
     @Override
     public Object visitUnaryExpression(UnaryExpression expression) {
+        Object result = evaluate(expression.right());
 
-
-/*
-
-public Object solve(Environment environment){
-        Object result = this.right.solve(environment);
-
-        if(this.operator.getTokenName() == TokenName.MINUS
-        && result instanceof Number){
+        if(expression.operator().getTokenName() == TokenName.MINUS
+                && result instanceof Number){
             if(result instanceof Integer)
                 return -(Integer)result;
             if(result instanceof Double)
                 return -(Double)result;
         }
-        else if(this.operator.getTokenName() == TokenName.BANG &&
-        result instanceof Boolean){
+        else if(expression.operator().getTokenName() == TokenName.BANG &&
+                result instanceof Boolean){
             return !(Boolean)result;
         }
         throw new SemanticException(
-                /*"El operador " + operator.getLexema() +* /
-                        "no se puede aplicar al tipo " +
+                "The operator '" + expression.operator().getTokenName() +
+                        "cannot be applied to the type: " +
                                 result.getClass().getName()
         );
-                }
-
-
- */
-
-
-        return null;
     }
 
     @Override
     public Object visitVariableExpression(VariableExpression expression) {
-
-
-/*3
-
-
-public Object solve(Environment environment){
-        return environment.get(name);
-    }
-}
- */
-
-        return null;
+        return environment.get(expression.name());
     }
 }

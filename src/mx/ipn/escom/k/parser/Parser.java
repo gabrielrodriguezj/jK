@@ -100,7 +100,7 @@ public class Parser {
         if (preanalisis.getTokenName() == TokenName.EXTENDS) {
             match(TokenName.EXTENDS);
             match(TokenName.IDENTIFIER);
-            Token nameSuperClass = previous();
+            TokenId nameSuperClass = (TokenId) previous();
             return new VariableExpression(nameSuperClass);
         }
         return null;
@@ -601,7 +601,8 @@ public class Parser {
                 return new LiteralExpression(((TokenString)previous()).value);
             case IDENTIFIER:
                 match(TokenName.IDENTIFIER);
-                return new VariableExpression(previous());
+                TokenId tokenId = (TokenId) previous();
+                return new VariableExpression(tokenId);
             case LEFT_PAREN:
                 match(TokenName.LEFT_PAREN);
                 Expression expr = expression();

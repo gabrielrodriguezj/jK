@@ -1,6 +1,7 @@
 package mx.ipn.escom.k.core;
 
 import mx.ipn.escom.k.token.Token;
+import mx.ipn.escom.k.token.TokenId;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -18,7 +19,7 @@ public class Environment {
         this.enclosing = enclosing;
     }
 
-    public Object get(Token name) {
+    public Object get(TokenId name) {
         //if (values.containsKey(name.getLexema())) {
         //    return values.get(name.getLexema());
         //}
