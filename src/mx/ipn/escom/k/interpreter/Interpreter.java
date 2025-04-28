@@ -267,126 +267,92 @@ public class Interpreter implements VisitorExpression, VisitorStatement {
         return environment.get(expression.name());
     }
 
+    void execute(Statement statement){
+        statement.accept(this);
+    }
+
     @Override
     public void visitBlockStatement(BlockStatement statement) {
-        /*
-        @Override
-    public void execute(Environment environment) {
-        Environment local = new Environment(environment);
 
-        for(Statement stmt : statements){
-            stmt.execute(local);
+        // Keep the highest environment in the stack
+        // TODO: Implement a stack of environments instead of a linked list
+        Environment local = new Environment(environment);
+        Environment previous = environment;
+
+        this.environment = local;
+
+        for(Statement stmt : statement.statements()){
+            execute(stmt);
         }
-    }
-         */
+
+        this.environment = previous;
     }
 
     @Override
     public void visitClassStatement(ClassStatement statement) {
-/*
-
-    @Override
-    public void execute(Environment environment) {
         throw new UnsupportedOperationException();
-    }
-
- */
     }
 
     @Override
     public void visitExpressionStatement(ExpressionStatement statement) {
-/*
-public void execute(Environment environment){
-        // expression.solve(environment);
-    }
- */
+        evaluate(statement.expression());
     }
 
     @Override
     public void visitFunctionStatement(FunctionStatement statement) {
-/*
+        Environment local = new Environment(environment);
 
-@Override
-    public void execute(Environment environment) {
-        Function function = new Function(this, environment, false);
-        environment.define(name.getId(), function);
-    }
-
- */
+        Function function = new Function(statement, local, false);
+        environment.define(statement.name().getId(), function);
     }
 
     @Override
     public void visitIfStatement(IfStatement statement) {
-/*
-
-@Override
-    public void execute(Environment environment) {
-        /*Object resCondition = condition.solve(environment);
-        if(!(resCondition instanceof Boolean)){
+        Object condition = evaluate(statement.condition());
+        if (!(condition instanceof Boolean)) {
             throw new RuntimeException(
-                    "La condición no es válida");
+                    "If condition must be a boolean");
         }
 
-        if(((Boolean)resCondition) == true){
-            thenBranch.execute(environment);
+        if (((Boolean) condition)) {
+            execute(statement.thenBranch());
+        } else if (statement.elseBranch() != null) {
+            execute(statement.elseBranch());
         }
-        else if(elseBranch != null){
-            elseBranch.execute(environment);
-        }*/
-
     }
 
     @Override
     public void visitLoopStatement(LoopStatement statement) {
-/*
-
-@Override
-    public void execute(Environment environment) {
-        /*Object resCondition = condition.solve(environment);
-        if(!(resCondition instanceof Boolean)){
+        Object condition = evaluate(statement.condition());
+        if (!(condition instanceof Boolean)) {
             throw new RuntimeException(
-                    "La condición no es válida");
+                    "If condition must be a boolean");
         }
 
-        while (((Boolean)resCondition) == true){
-            body.execute(environment);
-            resCondition = condition.solve(environment);
-        }*/
-
+        while (((Boolean)condition)){
+            execute(statement.body());
+            condition = evaluate(statement.condition());
+        }
     }
 
     @Override
     public void visitPrintStatement(PrintStatement statement) {
-/*
- public void execute(Environment environment){
-        /*Object res = expression.solve(environment);
-        System.out.println(res);*/
-
+        Object res = evaluate(statement.expression());
+        System.out.println(res);
     }
 
     @Override
     public void visitReturnStatement(ReturnStatement statement) {
-/*
-  @Override
-    public void execute(Environment environment) {
         throw new UnsupportedOperationException();
-    }
-
-
-
- */
     }
 
     @Override
     public void visitVarStatement(VarStatement statement) {
-/*
+        Object init = null;
+        if(statement.initializer() != null){
+            init = evaluate(statement.initializer());
+        }
 
-public void execute(Environment environment){
-        /*Object init = null;
-        if(initializer != null){
-            init = initializer.solve(environment);
-        }*/
-
-        /*environment.define(name.getLexema(), init);*/
+        environment.define(statement.name().getId(), init);
     }
 }

@@ -135,7 +135,7 @@ public class Parser {
     private Statement varDeclaration() throws ParserException {
         match(TokenName.VAR);
         match(TokenName.IDENTIFIER);
-        Token name = previous();
+        TokenId name = (TokenId) previous();
         Expression init = varInit();
         match(TokenName.SEMICOLON);
 
