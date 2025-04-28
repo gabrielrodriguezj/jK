@@ -2,28 +2,29 @@ package mx.ipn.escom.k.parser;
 
 import mx.ipn.escom.k.exception.ParserException;
 import mx.ipn.escom.k.interpreter.AST;
-import mx.ipn.escom.k.tools.TipoToken;
-import mx.ipn.escom.k.tools.Token;
+import mx.ipn.escom.k.scanner.Scanner;
+import mx.ipn.escom.k.token.*;
 
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
 public class Parser {
-    private final List<Token> tokens;
-    private int i = 0;
+    private Scanner scanner;
     private Token preanalisis;
+    private Token previous;
 
-    public Parser(List<Token> tokens) {
-        this.tokens = tokens;
-        this.preanalisis = tokens.get(i);
+    public Parser(Scanner scanner) {
+        this.scanner = scanner;
+        this.preanalisis = scanner.next();
+        this.preanalisis = null;
     }
 
     public AST parse() throws ParserException {
         List<Statement> statements = program();
 
-        if (preanalisis.getTipo() != TipoToken.EOF) {
-            String message = "Se encontró un error en el programa";
+        if (preanalisis.getTokenName() != TokenName.EOF) {
+            String message = "An error found in the code";
             throw new ParserException(message);
         }
 
@@ -32,34 +33,14 @@ public class Parser {
 
     private List<Statement> program() throws ParserException {
         List<Statement> statements = new ArrayList<>();
-        switch (preanalisis.getTipo()) {
-            case CLASS:
-            case FUN:
-            case VAR:
-            case FOR:
-            case IF:
-            case WHILE:
-            case PRINT:
-            case RETURN:
-            case LEFT_BRACE:
-            case BANG:
-            case MINUS:
-            case TRUE:
-            case FALSE:
-            case NULL:
-            case NUMBER:
-            case STRING:
-            case IDENTIFIER:
-            case LEFT_PAREN:
-            case SUPER:
-            case THIS:
-                declaration(statements);
-        }
+
+        declaration(statements);
+
         return statements;
     }
 
     private void declaration(List<Statement> statements) throws ParserException {
-        switch (preanalisis.getTipo()) {
+        switch (preanalisis.getTokenName()) {
             case CLASS:
                 Statement classDecl = classDeclaration();
                 statements.add(classDecl);
@@ -100,77 +81,81 @@ public class Parser {
     }
 
     private Statement classDeclaration() throws ParserException {
-        if (preanalisis.getTipo() == TipoToken.CLASS) {
-            match(TipoToken.CLASS);
-            match(TipoToken.IDENTIFIER);
-            Token name = previous();
-            ExprVariable superClass = classInher();
-            match(TipoToken.LEFT_BRACE);
-            List<StmtFunction> methods = new ArrayList<>();
-            functions(methods);
-            match(TipoToken.RIGHT_BRACE);
+        match(TokenName.CLASS);
+        match(TokenName.IDENTIFIER);
+        Token name = previous();
+        ExprVariable superClass = classInher();
+        match(TokenName.LEFT_BRACE);
+        List<Statement> attributesAndMethods = new ArrayList<>();
+        classElement(attributesAndMethods);
+        match(TokenName.RIGHT_BRACE);
 
-            return new StmtClass(name, superClass, methods);
-        } else {
-            String message = "Error en la posición " +
-                    preanalisis.getPosition() +
-                    ". Se esperaba el token class pero se encontró " +
-                    preanalisis.getLexema();
-            throw new ParserException(message);
-        }
+        return new StmtClass(name, superClass, attributesAndMethods);
     }
 
     private ExprVariable classInher() throws ParserException {
-        if (preanalisis.getTipo() == TipoToken.EXTENDS) {
-            match(TipoToken.EXTENDS);
-            match(TipoToken.IDENTIFIER);
+        if (preanalisis.getTokenName() == TokenName.EXTENDS) {
+            match(TokenName.EXTENDS);
+            match(TokenName.IDENTIFIER);
             Token nameSuperClass = previous();
             return new ExprVariable(nameSuperClass);
         }
         return null;
     }
 
-    private Statement funDeclaration() throws ParserException {
-        if (preanalisis.getTipo() == TipoToken.FUN) {
-            match(TipoToken.FUN);
-            return function();
-        } else {
-            String message = "Error en la posición " +
-                    preanalisis.getPosition().getLine() +
-                    ". Se esperaba el token fun pero se encontró " +
-                    preanalisis.getLexema();
-            throw new ParserException(message);
+    private void classElement(List<Statement> attributesAndMethods) throws ParserException {
+        if(preanalisis.getTokenName() == TokenName.VAR){
+            Statement attribute = varDeclaration();
+            attributesAndMethods.add(attribute);
+            classElement(attributesAndMethods);
         }
+        else if(preanalisis.getTokenName() == TokenName.FUN){
+            Statement method = funDeclaration();
+            attributesAndMethods.add(method);
+            classElement(attributesAndMethods);
+        }
+    }
+
+    private void functions(List<StmtFunction> functions) throws ParserException {
+        if (preanalisis.getTokenName() == TokenName.FUN) {
+            StmtFunction fun = (StmtFunction) funDeclaration();
+            functions.add(fun);
+            functions(functions);
+        }
+    }
+
+    private Statement funDeclaration() throws ParserException {
+        match(TokenName.FUN);
+        match(TokenName.IDENTIFIER);
+        TokenId name = (TokenId)previous();
+        match(TokenName.LEFT_PAREN);
+        List<Token> parameters = parameters();
+        match(TokenName.RIGHT_PAREN);
+        Statement body = block();
+
+        return new StmtFunction(name, parameters, (StmtBlock) body);
     }
 
     private Statement varDeclaration() throws ParserException {
-        if (preanalisis.getTipo() == TipoToken.VAR) {
-            match(TipoToken.VAR);
-            match(TipoToken.IDENTIFIER);
-            Token name = previous();
-            Expression init = varInit();
-            match(TipoToken.SEMICOLON);
+        match(TokenName.VAR);
+        match(TokenName.IDENTIFIER);
+        Token name = previous();
+        Expression init = varInit();
+        match(TokenName.SEMICOLON);
 
-            return new StmtVar(name, init);
-        } else {
-            String message = "Error en la posición " +
-                    preanalisis.getPosition().getLine() +
-                    ". Se esperaba el token var pero se encontró " +
-                    preanalisis.getLexema();
-            throw new ParserException(message);
-        }
+        return new StmtVar(name, init);
     }
 
     private Expression varInit() throws ParserException {
-        if (preanalisis.getTipo() == TipoToken.EQUAL) {
-            match(TipoToken.EQUAL);
+        if (preanalisis.getTokenName() == TokenName.EQUAL) {
+            match(TokenName.EQUAL);
             return expression();
         }
         return null;
     }
 
     private Statement statement() throws ParserException {
-        switch (preanalisis.getTipo()) {
+        switch (preanalisis.getTokenName()) {
             case BANG:
             case MINUS:
             case TRUE:
@@ -196,49 +181,30 @@ public class Parser {
             case LEFT_BRACE:
                 return block();
             default:
-                String message = "Error en la posición " +
-                        preanalisis.getPosition() +
-                        " cerca de " +
-                        preanalisis.getLexema();
+                String message = "Error in the line " +
+                        preanalisis.getLine() +
+                        " close of token " +
+                        preanalisis.getTokenName();
                 throw new ParserException(message);
         }
     }
 
     private Statement exprStatement() throws ParserException {
-        switch (preanalisis.getTipo()) {
-            case BANG:
-            case MINUS:
-            case TRUE:
-            case FALSE:
-            case NULL:
-            case NUMBER:
-            case STRING:
-            case IDENTIFIER:
-            case LEFT_PAREN:
-            case SUPER:
-            case THIS:
-                Expression expr = expression();
-                match(TipoToken.SEMICOLON);
-                return new StmtExpression(expr);
-            default:
-                String message = "Error en la posición " +
-                        preanalisis.getPosition() +
-                        " cerca de " +
-                        preanalisis.getLexema();
-                throw new ParserException(message);
-        }
+        Expression expr = expression();
+        match(TokenName.SEMICOLON);
+        return new StmtExpression(expr);
     }
 
     private Statement forStatement() throws ParserException {
-        match(TipoToken.FOR);
-        match(TipoToken.LEFT_PAREN);
+        match(TokenName.FOR);
+        match(TokenName.LEFT_PAREN);
         Statement initializer = forStatementInit();
         Expression condition = forStatementCondition();
         Expression increment = forStatementIncrease();
-        match(TipoToken.RIGHT_PAREN);
+        match(TokenName.RIGHT_PAREN);
         Statement body = statement();
 
-        // "Desugar" incremento
+        // "Desugar" increment
         if (increment != null) {
             body = new StmtBlock(
                     Arrays.asList(
@@ -248,13 +214,13 @@ public class Parser {
             );
         }
 
-        // "Desugar" condición
+        // "Desugar" condition
         if (condition == null) {
             condition = new ExprLiteral(true);
         }
         body = new StmtLoop(condition, body);
 
-        // "Desugar" inicialización
+        // "Desugar" initialization
         if (initializer != null) {
             body = new StmtBlock(Arrays.asList(initializer, body));
         }
@@ -262,7 +228,7 @@ public class Parser {
     }
 
     private Statement forStatementInit() throws ParserException {
-        switch (preanalisis.getTipo()) {
+        switch (preanalisis.getTokenName()) {
             case VAR:
                 return varDeclaration();
             case BANG:
@@ -277,23 +243,23 @@ public class Parser {
             case SUPER:
             case THIS:
                 Statement stmt = exprStatement();
-                match(TipoToken.SEMICOLON);
+                match(TokenName.SEMICOLON);
                 return stmt;
             case SEMICOLON:
-                match(TipoToken.SEMICOLON);
+                match(TokenName.SEMICOLON);
                 return null;
             default:
-                String message = "Error en la posición " +
-                        preanalisis.getPosition() +
-                        " cerca de " + preanalisis.getLexema() +
-                        " se esperaba una declaración o una expresión";
+                String message = "Error in the line " +
+                        preanalisis.getLine() +
+                        " close of " + preanalisis.getTokenName() +
+                        " An declaration or expression was expected";
                 throw new ParserException(message);
         }
 
     }
 
     private Expression forStatementCondition() throws ParserException {
-        switch (preanalisis.getTipo()) {
+        switch (preanalisis.getTokenName()) {
             case BANG:
             case MINUS:
             case TRUE:
@@ -306,23 +272,23 @@ public class Parser {
             case SUPER:
             case THIS:
                 Expression expr = expression();
-                match(TipoToken.SEMICOLON);
+                match(TokenName.SEMICOLON);
                 return expr;
             case SEMICOLON:
-                match(TipoToken.SEMICOLON);
+                match(TokenName.SEMICOLON);
                 return null;
             default:
-                String message = "Error en la posición " +
-                        preanalisis.getPosition() +
-                        " cerca de " + preanalisis.getLexema() +
-                        " se esperaba una condición";
+                String message = "Error in the line " +
+                        preanalisis.getLine() +
+                        " close of " + preanalisis.getTokenName() +
+                        " A condition was expected";
                 throw new ParserException(message);
         }
 
     }
 
     private Expression forStatementIncrease() throws ParserException {
-        switch (preanalisis.getTipo()) {
+        switch (preanalisis.getTokenName()) {
             case BANG:
             case MINUS:
             case TRUE:
@@ -340,10 +306,10 @@ public class Parser {
     }
 
     private Statement ifStatement() throws ParserException {
-        match(TipoToken.IF);
-        match(TipoToken.LEFT_PAREN);
+        match(TokenName.IF);
+        match(TokenName.LEFT_PAREN);
         Expression condition = expression();
-        match(TipoToken.RIGHT_PAREN);
+        match(TokenName.RIGHT_PAREN);
         Statement thenBranch = statement();
         Statement elseBranch = elseStatement();
 
@@ -351,41 +317,41 @@ public class Parser {
     }
 
     private Statement elseStatement() throws ParserException {
-        if (preanalisis.getTipo() == TipoToken.ELSE) {
-            match(TipoToken.ELSE);
+        if (preanalisis.getTokenName() == TokenName.ELSE) {
+            match(TokenName.ELSE);
             return statement();
         }
         return null;
     }
 
     private Statement whileStatement() throws ParserException {
-        match(TipoToken.WHILE);
-        match(TipoToken.LEFT_PAREN);
+        match(TokenName.WHILE);
+        match(TokenName.LEFT_PAREN);
         Expression condition = expression();
-        match(TipoToken.RIGHT_PAREN);
+        match(TokenName.RIGHT_PAREN);
         Statement body = statement();
 
         return new StmtLoop(condition, body);
     }
 
     private Statement printStatement() throws ParserException {
-        match(TipoToken.PRINT);
+        match(TokenName.PRINT);
         Expression expr = expression();
-        match(TipoToken.SEMICOLON);
+        match(TokenName.SEMICOLON);
 
         return new StmtPrint(expr);
     }
 
     private Statement returnStatement() throws ParserException {
-        match(TipoToken.RETURN);
+        match(TokenName.RETURN);
         Expression value = returnExpressionOptional();
-        match(TipoToken.SEMICOLON);
+        match(TokenName.SEMICOLON);
 
         return new StmtReturn(value);
     }
 
     private Expression returnExpressionOptional() throws ParserException {
-        switch (preanalisis.getTipo()) {
+        switch (preanalisis.getTokenName()) {
             case BANG:
             case MINUS:
             case TRUE:
@@ -403,20 +369,20 @@ public class Parser {
     }
 
     private Statement block() throws ParserException {
-        match(TipoToken.LEFT_BRACE);
+        match(TokenName.LEFT_BRACE);
         List<Statement> statements = new ArrayList<>();
         declaration(statements);
-        match(TipoToken.RIGHT_BRACE);
+        match(TokenName.RIGHT_BRACE);
 
         return new StmtBlock(statements);
     }
 
-
     /*
     Bloque de expresiones
      */
+
     private Expression expression() throws ParserException {
-        switch (preanalisis.getTipo()) {
+        switch (preanalisis.getTokenName()) {
             case BANG:
             case MINUS:
             case TRUE:
@@ -430,10 +396,10 @@ public class Parser {
             case THIS:
                 return assignment();
             default:
-                String message = "Error en la posición " +
-                        preanalisis.getPosition() +
-                        " cerca de " + preanalisis.getLexema() +
-                        " se esperaba una expressión";
+                String message = "Error in the line " +
+                        preanalisis.getLine() +
+                        " close of " + preanalisis.getTokenName() +
+                        " . An expression was expected";
                 throw new ParserException(message);
         }
     }
@@ -444,8 +410,8 @@ public class Parser {
     }
 
     private Expression assignmentOptional(Expression expr) throws ParserException {
-        if (preanalisis.getTipo() == TipoToken.EQUAL) {
-            match(TipoToken.EQUAL);
+        if (preanalisis.getTokenName() == TokenName.EQUAL) {
+            match(TokenName.EQUAL);
             Expression value = expression();
 
             if (expr instanceof ExprVariable) {
@@ -456,7 +422,7 @@ public class Parser {
                 return new ExprSet(get.object, get.name, value);
             }
 
-            throw new ParserException("Asignación inválida del objetivo");
+            throw new ParserException("Assignacion expression bad formed. Left side is non assignable");
 
         }
         return expr;
@@ -468,8 +434,8 @@ public class Parser {
     }
 
     private Expression logicOr2(Expression left) throws ParserException {
-        if (preanalisis.getTipo() == TipoToken.OR) {
-            match(TipoToken.OR);
+        if (preanalisis.getTokenName() == TokenName.OR) {
+            match(TokenName.OR);
             Token operator = previous();
             Expression right = logicAnd();
             Expression expr = new ExprLogical(left, operator, right);
@@ -485,8 +451,8 @@ public class Parser {
     }
 
     private Expression logicAnd2(Expression left) throws ParserException {
-        if (preanalisis.getTipo() == TipoToken.AND) {
-            match(TipoToken.AND);
+        if (preanalisis.getTokenName() == TokenName.AND) {
+            match(TokenName.AND);
             Token operator = previous();
             Expression right = equality();
             Expression expr = new ExprLogical(left, operator, right);
@@ -502,10 +468,10 @@ public class Parser {
     }
 
     private Expression equality2(Expression left) throws ParserException {
-        switch (preanalisis.getTipo()) {
+        switch (preanalisis.getTokenName()) {
             case BANG_EQUAL:
             case EQUAL_EQUAL:
-                match(preanalisis.getTipo()); //!= o ==
+                match(preanalisis.getTokenName()); //!= o ==
                 Token operator = previous();
                 Expression right = comparison();
                 Expression expr = new ExprRelational(left, operator, right);
@@ -520,12 +486,12 @@ public class Parser {
     }
 
     private Expression comparison2(Expression left) throws ParserException {
-        switch (preanalisis.getTipo()) {
+        switch (preanalisis.getTokenName()) {
             case GREATER:
             case GREATER_EQUAL:
             case LESS:
             case LESS_EQUAL:
-                match(preanalisis.getTipo()); // <, <=, >, >=
+                match(preanalisis.getTokenName()); // <, <=, >, >=
                 Token operator = previous();
                 Expression right = term();
                 Expression expr = new ExprRelational(left, operator, right);
@@ -541,10 +507,10 @@ public class Parser {
     }
 
     private Expression term2(Expression left) throws ParserException {
-        switch (preanalisis.getTipo()) {
+        switch (preanalisis.getTokenName()) {
             case MINUS:
             case PLUS:
-                match(preanalisis.getTipo()); // MINUS o PLUS
+                match(preanalisis.getTokenName()); // MINUS o PLUS
                 Token operator = previous();
                 Expression right = factor();
                 Expression expr = new ExprBinary(left, operator, right);
@@ -559,10 +525,10 @@ public class Parser {
     }
 
     private Expression factor2(Expression left) throws ParserException {
-        switch (preanalisis.getTipo()) {
+        switch (preanalisis.getTokenName()) {
             case SLASH:
             case STAR:
-                match(preanalisis.getTipo()); // SLASH o STAR
+                match(preanalisis.getTokenName()); // SLASH o STAR
                 Token operator = previous();
                 Expression right = unary();
                 Expression expr = new ExprBinary(left, operator, right);
@@ -572,14 +538,14 @@ public class Parser {
     }
 
     private Expression unary() throws ParserException {
-        switch (preanalisis.getTipo()) {
+        switch (preanalisis.getTokenName()) {
             case BANG:
-                match(TipoToken.BANG);
+                match(TokenName.BANG);
                 Token operator = previous();
                 Expression expr = unary();
                 return new ExprUnary(operator, expr);
             case MINUS:
-                match(TipoToken.MINUS);
+                match(TokenName.MINUS);
                 operator = previous();
                 expr = unary();
                 return new ExprUnary(operator, expr);
@@ -591,7 +557,7 @@ public class Parser {
     private Expression call() throws ParserException {
         Expression expr = primary();
 
-        switch (preanalisis.getTipo()) {
+        switch (preanalisis.getTokenName()) {
             case LEFT_PAREN:
             case DOT:
                 expr = call2(expr);
@@ -601,16 +567,16 @@ public class Parser {
     }
 
     private Expression call2(Expression expr) throws ParserException {
-        switch (preanalisis.getTipo()) {
+        switch (preanalisis.getTokenName()) {
             case LEFT_PAREN:
-                match(TipoToken.LEFT_PAREN);
-                List<Expression> lstArguments = argumentsOptional();
-                match(TipoToken.RIGHT_PAREN);
+                match(TokenName.LEFT_PAREN);
+                List<Expression> lstArguments = arguments();
+                match(TokenName.RIGHT_PAREN);
                 Expression exprCall = new ExprCallFunction(expr, lstArguments);
                 return call2(exprCall);
             case DOT:
-                match(TipoToken.DOT);
-                match(TipoToken.IDENTIFIER);
+                match(TokenName.DOT);
+                match(TokenName.IDENTIFIER);
                 Token name = previous();
                 Expression exprGet = new ExprGet(expr, name);
                 return call2(exprGet);
@@ -619,114 +585,72 @@ public class Parser {
     }
 
     private Expression primary() throws ParserException {
-        switch (preanalisis.getTipo()) {
+        switch (preanalisis.getTokenName()) {
             case TRUE:
-                match(TipoToken.TRUE);
+                match(TokenName.TRUE);
                 return new ExprLiteral(true);
             case FALSE:
-                match(TipoToken.FALSE);
+                match(TokenName.FALSE);
                 return new ExprLiteral(false);
             case NULL:
-                match(TipoToken.NULL);
+                match(TokenName.NULL);
                 return new ExprLiteral(null);
             case THIS:
-                match(TipoToken.THIS);
+                match(TokenName.THIS);
                 return new ExprThis();
             case NUMBER:
-                match(TipoToken.NUMBER);
-                return new ExprLiteral(previous().getLiteral());
+                match(TokenName.NUMBER);
+                return new ExprLiteral( ((TokenNumber)previous()).value);
             case STRING:
-                match(TipoToken.STRING);
-                return new ExprLiteral(previous().getLiteral());
+                match(TokenName.STRING);
+                return new ExprLiteral(((TokenString)previous()).value);
             case IDENTIFIER:
-                match(TipoToken.IDENTIFIER);
+                match(TokenName.IDENTIFIER);
                 return new ExprVariable(previous());
             case LEFT_PAREN:
-                match(TipoToken.LEFT_PAREN);
+                match(TokenName.LEFT_PAREN);
                 Expression expr = expression();
-                match(TipoToken.RIGHT_PAREN);
+                match(TokenName.RIGHT_PAREN);
                 return new ExprGrouping(expr);
             case SUPER:
-                match(TipoToken.SUPER);
-                match(TipoToken.DOT);
-                match(TipoToken.IDENTIFIER);
+                match(TokenName.SUPER);
+                match(TokenName.DOT);
+                match(TokenName.IDENTIFIER);
                 return new ExprSuper(previous());
         }
-        throw new ParserException("Expresión no esperada");
+        throw new ParserException("Expression not expected");
     }
-
 
     /*
     Bloque de funciones auxiliares
      */
-    private StmtFunction function() throws ParserException {
-        if (preanalisis.getTipo() == TipoToken.IDENTIFIER) {
-            match(TipoToken.IDENTIFIER);
-            Token name = previous();
-            match(TipoToken.LEFT_PAREN);
-            List<Token> parameters = parametersOptional();
-            match(TipoToken.RIGHT_PAREN);
-            Statement body = block();
 
-            return new StmtFunction(name, parameters, (StmtBlock) body);
-        } else {
-            String message = "Error en la posición " +
-                    preanalisis.getPosition() +
-                    " cerca de " +
-                    preanalisis.getLexema() +
-                    ". Se esperaba un identificador";
-            throw new ParserException(message);
-        }
-    }
-
-    private void functions(List<StmtFunction> functions) throws ParserException {
-        if (preanalisis.getTipo() == TipoToken.FUN) {
-            StmtFunction fun = (StmtFunction) funDeclaration();
-            functions.add(fun);
-            functions(functions);
-        }
-    }
-
-    private List<Token> parametersOptional() throws ParserException {
-        if (preanalisis.getTipo() == TipoToken.IDENTIFIER) {
-            List<Token> params = new ArrayList<>();
-            parameters(params);
-            return params;
-        }
-
-        return null;
-    }
-
-    private void parameters(List<Token> params) throws ParserException {
-        if (preanalisis.getTipo() == TipoToken.IDENTIFIER) {
-            match(TipoToken.IDENTIFIER);
+    private List<Token> parameters() throws ParserException {
+        List<Token> params = new ArrayList<>();
+        if (preanalisis.getTokenName() == TokenName.IDENTIFIER) {
+            match(TokenName.IDENTIFIER);
             Token name = previous();
             params.add(name);
             parameters2(params);
-        } else {
-            String message = "Error en la posición " +
-                    preanalisis.getPosition() +
-                    " cerca de " +
-                    preanalisis.getLexema() +
-                    ". Se esperaba un identificador";
-            throw new ParserException(message);
         }
+
+        return params;
     }
 
     private void parameters2(List<Token> params) throws ParserException {
-        if (preanalisis.getTipo() == TipoToken.COMMA) {
-            match(TipoToken.COMMA);
-            match(TipoToken.IDENTIFIER);
+        if (preanalisis.getTokenName() == TokenName.COMMA) {
+            match(TokenName.COMMA);
+            match(TokenName.IDENTIFIER);
             Token name = previous();
             params.add(name);
             parameters2(params);
         }
     }
 
-    private List<Expression> argumentsOptional() throws ParserException {
+    private List<Expression> arguments() throws ParserException {
         List<Expression> lstArguments = new ArrayList<>();
 
-        switch (preanalisis.getTipo()) {
+        switch (preanalisis.getTokenName()) {
             case BANG:
             case MINUS:
             case TRUE:
@@ -740,36 +664,35 @@ public class Parser {
             case THIS:
                 Expression expr = expression();
                 lstArguments.add(expr);
-                arguments(lstArguments);
+                arguments2(lstArguments);
                 break;
         }
         return lstArguments;
     }
 
-    private void arguments(List<Expression> lstArguments) throws ParserException {
-        if (preanalisis.getTipo() == TipoToken.COMMA) {
-            match(TipoToken.COMMA);
+    private void arguments2(List<Expression> lstArguments) throws ParserException {
+        if (preanalisis.getTokenName() == TokenName.COMMA) {
+            match(TokenName.COMMA);
             Expression expr = expression();
             lstArguments.add(expr);
-            arguments(lstArguments);
+            arguments2(lstArguments);
         }
     }
 
-    private void match(TipoToken tt) throws ParserException {
-        if (preanalisis.getTipo() == tt) {
-            i++;
-            preanalisis = tokens.get(i);
+    private void match(TokenName tt) throws ParserException {
+        if (preanalisis.getTokenName() == tt) {
+            previous = preanalisis;
+            preanalisis = scanner.next();
         } else {
-            String message = "Error en la línea " +
-                    preanalisis.getPosition().getLine() +
-                    ". Se esperaba " + tt +
-                    " pero se encontró " + preanalisis.getTipo();
+            String message = "Error in the line " +
+                    preanalisis.getLine() +
+                    ". Expected " + tt +
+                    " but founded " + preanalisis.getTokenName();
             throw new ParserException(message);
         }
     }
 
     private Token previous() {
-        return this.tokens.get(i - 1);
+        return this.previous;
     }
-
 }
