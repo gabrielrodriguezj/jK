@@ -430,16 +430,16 @@ public class Parser {
 
     private Expression logicOr() throws ParserException {
         Expression expr = logicAnd();
-        return logicOr2(expr);
+        return logicOrPrime(expr);
     }
 
-    private Expression logicOr2(Expression left) throws ParserException {
+    private Expression logicOrPrime(Expression left) throws ParserException {
         if (preanalisis.getTokenName() == TokenName.OR) {
             match(TokenName.OR);
             Token operator = previous();
             Expression right = logicAnd();
             Expression expr = new ExprLogical(left, operator, right);
-            return logicOr2(expr);
+            return logicOrPrime(expr);
         }
 
         return left;
@@ -447,16 +447,16 @@ public class Parser {
 
     private Expression logicAnd() throws ParserException {
         Expression expr = equality();
-        return logicAnd2(expr);
+        return logicAndPrime(expr);
     }
 
-    private Expression logicAnd2(Expression left) throws ParserException {
+    private Expression logicAndPrime(Expression left) throws ParserException {
         if (preanalisis.getTokenName() == TokenName.AND) {
             match(TokenName.AND);
             Token operator = previous();
             Expression right = equality();
             Expression expr = new ExprLogical(left, operator, right);
-            return logicAnd2(expr);
+            return logicAndPrime(expr);
         }
 
         return left;
@@ -464,10 +464,10 @@ public class Parser {
 
     private Expression equality() throws ParserException {
         Expression expr = comparison();
-        return equality2(expr);
+        return equalityPrime(expr);
     }
 
-    private Expression equality2(Expression left) throws ParserException {
+    private Expression equalityPrime(Expression left) throws ParserException {
         switch (preanalisis.getTokenName()) {
             case BANG_EQUAL:
             case EQUAL_EQUAL:
@@ -475,17 +475,17 @@ public class Parser {
                 Token operator = previous();
                 Expression right = comparison();
                 Expression expr = new ExprRelational(left, operator, right);
-                return equality2(expr);
+                return equalityPrime(expr);
         }
         return left;
     }
 
     private Expression comparison() throws ParserException {
         Expression expr = term();
-        return comparison2(expr);
+        return comparisonPrime(expr);
     }
 
-    private Expression comparison2(Expression left) throws ParserException {
+    private Expression comparisonPrime(Expression left) throws ParserException {
         switch (preanalisis.getTokenName()) {
             case GREATER:
             case GREATER_EQUAL:
@@ -495,7 +495,7 @@ public class Parser {
                 Token operator = previous();
                 Expression right = term();
                 Expression expr = new ExprRelational(left, operator, right);
-                return comparison2(expr);
+                return comparisonPrime(expr);
         }
 
         return left;
@@ -503,10 +503,10 @@ public class Parser {
 
     private Expression term() throws ParserException {
         Expression expr = factor();
-        return term2(expr);
+        return termPrime(expr);
     }
 
-    private Expression term2(Expression left) throws ParserException {
+    private Expression termPrime(Expression left) throws ParserException {
         switch (preanalisis.getTokenName()) {
             case MINUS:
             case PLUS:
@@ -514,17 +514,17 @@ public class Parser {
                 Token operator = previous();
                 Expression right = factor();
                 Expression expr = new ExprBinary(left, operator, right);
-                return term2(expr);
+                return termPrime(expr);
         }
         return left;
     }
 
     private Expression factor() throws ParserException {
         Expression expr = unary();
-        return factor2(expr);
+        return factorPrime(expr);
     }
 
-    private Expression factor2(Expression left) throws ParserException {
+    private Expression factorPrime(Expression left) throws ParserException {
         switch (preanalisis.getTokenName()) {
             case SLASH:
             case STAR:
@@ -532,7 +532,7 @@ public class Parser {
                 Token operator = previous();
                 Expression right = unary();
                 Expression expr = new ExprBinary(left, operator, right);
-                return factor2(expr);
+                return factorPrime(expr);
         }
         return left;
     }
@@ -560,26 +560,26 @@ public class Parser {
         switch (preanalisis.getTokenName()) {
             case LEFT_PAREN:
             case DOT:
-                expr = call2(expr);
+                expr = callPrime(expr);
         }
 
         return expr;
     }
 
-    private Expression call2(Expression expr) throws ParserException {
+    private Expression callPrime(Expression expr) throws ParserException {
         switch (preanalisis.getTokenName()) {
             case LEFT_PAREN:
                 match(TokenName.LEFT_PAREN);
                 List<Expression> lstArguments = arguments();
                 match(TokenName.RIGHT_PAREN);
                 Expression exprCall = new ExprCallFunction(expr, lstArguments);
-                return call2(exprCall);
+                return callPrime(exprCall);
             case DOT:
                 match(TokenName.DOT);
                 match(TokenName.IDENTIFIER);
                 Token name = previous();
                 Expression exprGet = new ExprGet(expr, name);
-                return call2(exprGet);
+                return callPrime(exprGet);
         }
         return expr;
     }
@@ -631,19 +631,19 @@ public class Parser {
             match(TokenName.IDENTIFIER);
             Token name = previous();
             params.add(name);
-            parameters2(params);
+            parametersPrime(params);
         }
 
         return params;
     }
 
-    private void parameters2(List<Token> params) throws ParserException {
+    private void parametersPrime(List<Token> params) throws ParserException {
         if (preanalisis.getTokenName() == TokenName.COMMA) {
             match(TokenName.COMMA);
             match(TokenName.IDENTIFIER);
             Token name = previous();
             params.add(name);
-            parameters2(params);
+            parametersPrime(params);
         }
     }
 
@@ -664,18 +664,18 @@ public class Parser {
             case THIS:
                 Expression expr = expression();
                 lstArguments.add(expr);
-                arguments2(lstArguments);
+                argumentsPrime(lstArguments);
                 break;
         }
         return lstArguments;
     }
 
-    private void arguments2(List<Expression> lstArguments) throws ParserException {
+    private void argumentsPrime(List<Expression> lstArguments) throws ParserException {
         if (preanalisis.getTokenName() == TokenName.COMMA) {
             match(TokenName.COMMA);
             Expression expr = expression();
             lstArguments.add(expr);
-            arguments2(lstArguments);
+            argumentsPrime(lstArguments);
         }
     }
 
