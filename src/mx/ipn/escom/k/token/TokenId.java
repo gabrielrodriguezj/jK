@@ -12,4 +12,9 @@ public class TokenId extends Token {
     public String getId() {
         return id;
     }
+
+    @Override
+    public String toString(){
+        return "<" + tokenName + ", name: " +  id + ", line: " + line + ">";
+    }
 }

@@ -6,4 +6,9 @@ public class TokenNumber extends TokenConstant<Number> {
         super(TokenName.NUMBER, value, line);
     }
 
+    @Override
+    public String toString(){
+        return "<" + tokenName + ", value: " +  value + ", line: " + line + ">";
+    }
+
 }

@@ -11,7 +11,7 @@ public abstract class Token {
     }
 
     public String toString(){
-        return "<" + tokenName + ", " + line + ">";
+        return "<" + tokenName + ", line: " + line + ">";
     }
 
     public TokenName getTokenName() {
