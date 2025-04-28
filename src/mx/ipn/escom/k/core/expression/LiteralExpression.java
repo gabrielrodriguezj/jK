@@ -3,19 +3,10 @@ package mx.ipn.escom.k.core.expression;
 import mx.ipn.escom.k.core.Expression;
 import mx.ipn.escom.k.core.VisitorExpression;
 
-public class LiteralExpression implements Expression {
-    private final Object value;
-
-    public LiteralExpression(Object value) {
-        this.value = value;
-    }
+public record LiteralExpression(Object value) implements Expression {
 
     @Override
     public Object accept(VisitorExpression visitor) {
         return visitor.visitLiteralExpression(this);
-    }
-
-    public Object getValue() {
-        return value;
     }
 }

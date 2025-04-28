@@ -4,21 +4,14 @@ import mx.ipn.escom.k.core.Expression;
 import mx.ipn.escom.k.core.VisitorExpression;
 import mx.ipn.escom.k.token.Token;
 
-public class SuperExpression implements Expression {
-    // private final Token keyword;
-    private final Token method;
-
-    public SuperExpression(Token method) {
-        // this.keyword = keyword;
-        this.method = method;
-    }
+/**
+ * @param method private final Token keyword;
+ */
+public record SuperExpression(Token method) implements Expression {
+    // this.keyword = keyword;
 
     @Override
     public Object accept(VisitorExpression visitor) {
         return visitor.visitSuperExpression(this);
-    }
-
-    public Token getMethod() {
-        return method;
     }
 }
