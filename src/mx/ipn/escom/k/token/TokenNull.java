@@ -1,7 +1,7 @@
 package mx.ipn.escom.k.token;
 
 public class TokenNull extends TokenConstant<Object> {
-    public TokenNull(TokenName tokenName, Position position) {
-        super(tokenName, null, position);
+    public TokenNull(int line) {
+        super(TokenName.NULL, null, line);
     }
 }

@@ -4,8 +4,8 @@ public class TokenId extends Token {
 
     private final String id;
 
-    public TokenId(TokenName tokenName, String id, Position position) {
-        super(tokenName, position);
+    public TokenId(String id, int line) {
+        super(TokenName.IDENTIFIER, line);
         this.id = id;
     }
 

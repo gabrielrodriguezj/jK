@@ -4,8 +4,8 @@ public abstract class TokenConstant <T> extends Token {
 
     public T value;
 
-    public TokenConstant(TokenName tokenName, T value, Position position) {
-        super(tokenName, position);
+    public TokenConstant(TokenName tokenName, T value, int line) {
+        super(tokenName, line);
         this.value = value;
     }
 

@@ -3,24 +3,22 @@ package mx.ipn.escom.k.token;
 public abstract class Token {
 
     final TokenName tokenName;
-    final Position position;
+    final int line;
 
-    public Token(TokenName tokenName, Position position) {
+    public Token(TokenName tokenName, int line) {
         this.tokenName = tokenName;
-        this.position = position;
+        this.line = line;
     }
 
     public String toString(){
-        return "<" + tokenName +
-                (position == null ? "" : ", " + position.getLine() + ":" + position.getColumn()) +
-                ">";
+        return "<" + tokenName + ", " + line + ">";
     }
 
     public TokenName getTokenName() {
         return tokenName;
     }
 
-    public Position getPosition() {
-        return position;
+    public int getLine() {
+        return line;
     }
 }
