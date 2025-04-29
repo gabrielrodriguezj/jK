@@ -45,7 +45,12 @@ public class KFunction implements KCallable {
      */
     @Override
     public Object call(VisitorImplementationInterpreter interpreter, List<Object> arguments) {
+
+        // Create a new environment for the function call. Closure is the environment
+        // in which the function was declared.
         Environment environment = new Environment(closure);
+
+        // Define the arguments function's environment.
         for (int i = 0; i < declaration.params().size(); i++) {
             environment.define(
                     ((TokenId)declaration.params().get(i)).getId(),
