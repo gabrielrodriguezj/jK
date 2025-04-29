@@ -1,11 +1,10 @@
 package mx.ipn.escom.k.interpreter;
 
 import mx.ipn.escom.k.core.*;
+import mx.ipn.escom.k.core.exception.RuntimeError;
 import mx.ipn.escom.k.core.exception.SemanticException;
 import mx.ipn.escom.k.core.expression.*;
 import mx.ipn.escom.k.core.statement.*;
-import mx.ipn.escom.k.token.Token;
-import mx.ipn.escom.k.token.TokenId;
 import mx.ipn.escom.k.token.TokenName;
 
 import java.util.ArrayList;
@@ -109,38 +108,40 @@ public class VisitorImplementationInterpreter implements VisitorExpression, Visi
         throw new SemanticException("Operation not valid");
     }
 
+    /**
+     * This method is called when a function is called, not declared.
+     * @param expression contains the callee, the arguments and the paren.
+     * @return the value returned by the function, if it returns a value, if not, returns null.
+     */
     @Override
     public Object visitCallFunctionExpression(CallFunctionExpression expression) {
-        if(!(expression.callee() instanceof VariableExpression)){
-            throw new RuntimeException(
-                    "Not a valid function call");
-        }
 
-        Token name = ((VariableExpression)expression.callee()).name();
-        if(!(name instanceof TokenId)){
-            throw new RuntimeException(
-                    "Not a valid function call");
-        }
+        // Evaluate the callee element:
+        // In the phrase: void main(), main is the callee.
+        Object callee = evaluate(expression.callee());
 
-        TokenId nameFunction = (TokenId)name;
-
-        Object function = environment.get(nameFunction);
-
-        if(!(function instanceof Function)) {
-            throw new RuntimeException(
-                    "Function '" + nameFunction.getId() + "'not found"
-            );
-        }
-
-        List<Object> args = new ArrayList<>();
+        // Evaluate the arguments:
+        List<Object> arguments = new ArrayList<>();
         for(Expression expr : expression.arguments()){
             Object res = evaluate(expr);
-            args.add(res);
+            arguments.add(res);
         }
 
-        ((Function)function).call(args);
+        if (!(callee instanceof KCallable)) {
+            throw new RuntimeError(expression.paren(),
+                    "Can only call functions and classes.");
+        }
 
-        return null;
+        KFunction function = (KFunction) callee;
+
+        // check function's arity
+        if (arguments.size() != function.arity()) {
+            throw new RuntimeError(expression.paren(), "Expected " +
+                    function.arity() + " arguments but got " +
+                    arguments.size() + ".");
+        }
+
+        return function.call(this, arguments);
     }
 
     @Override
@@ -297,11 +298,16 @@ public class VisitorImplementationInterpreter implements VisitorExpression, Visi
         evaluate(statement.expression());
     }
 
+    /**
+     * This method is called when a function is declared, not called.
+     * @param statement contains the name of the function, parameters and body of the function.
+     */
     @Override
     public void visitFunctionStatement(FunctionStatement statement) {
-        Environment local = new Environment(environment);
+        // Create the callable object for the function.
+        KFunction function = new KFunction(statement, environment, false);
 
-        Function function = new Function(statement, local, false);
+        // Define the function in the current environment.
         environment.define(statement.name().getId(), function);
     }
 
@@ -342,7 +348,12 @@ public class VisitorImplementationInterpreter implements VisitorExpression, Visi
 
     @Override
     public void visitReturnStatement(ReturnStatement statement) {
-        throw new UnsupportedOperationException();
+        Object value = null;
+        if (statement.value() != null) {
+            value = evaluate(statement.value());
+        }
+
+        throw new Return(value);
     }
 
     @Override

@@ -568,7 +568,8 @@ public class Parser {
                 match(TokenName.LEFT_PAREN);
                 List<Expression> lstArguments = arguments();
                 match(TokenName.RIGHT_PAREN);
-                Expression exprCall = new CallFunctionExpression(expr, lstArguments);
+                TokenPunctuationMarks paren = (TokenPunctuationMarks) previous();
+                Expression exprCall = new CallFunctionExpression(expr, paren, lstArguments);
                 return callPrime(exprCall);
             case DOT:
                 match(TokenName.DOT);
