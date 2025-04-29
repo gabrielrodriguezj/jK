@@ -1,6 +1,8 @@
 package mx.ipn.escom.k;
 
 import mx.ipn.escom.k.core.AST;
+import mx.ipn.escom.k.core.Environment;
+import mx.ipn.escom.k.interpreter.Interpreter;
 import mx.ipn.escom.k.parser.Parser;
 import mx.ipn.escom.k.scanner.Scanner;
 
@@ -13,8 +15,6 @@ import java.nio.file.Paths;
 
 public class K {
 
-    //static Environment environment = new Environment();
-
     public static void main(String[] args) {
         if(args.length > 1) {
             System.out.println("More than the one argument expected. Usage : k [file.k]");
@@ -22,7 +22,8 @@ public class K {
             // Code convention in the file "system.h" from UNIX
             System.exit(64);
         }
-        else if(args.length == 1){
+
+        if(args.length == 1){
             executeFile(args[0]);
         } else{
             executePrompt();
@@ -67,7 +68,8 @@ public class K {
 
             Parser parser = new Parser(scanner);
             AST ast = parser.parse();
-            /*ast.toInterpret(environment);*/
+
+            Interpreter.getInstance().interpret(ast);
         }
         catch (Exception ex){
             ex.printStackTrace();
