@@ -20,8 +20,9 @@ public class KLogger {
         return instance;
     }
 
-    public void error(int line, String message) {
+    public void error(int line, String message, RuntimeException e) {
         report(line, "", message);
+        throw e;
     }
 
     public void error(Token token, String message) {

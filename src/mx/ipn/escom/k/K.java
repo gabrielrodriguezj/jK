@@ -64,9 +64,11 @@ public class K {
 
     private static void execute(String source) {
         Interpreter interpreter = Interpreter.getInstance();
-
+        KLogger logger = KLogger.getInstance();
         try{
             Scanner scanner = new Scanner(source);
+            if(logger.hasError()) return;
+
 
             Parser parser = new Parser(scanner);
             AST ast = parser.parse();

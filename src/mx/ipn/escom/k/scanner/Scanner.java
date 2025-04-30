@@ -1,5 +1,6 @@
 package mx.ipn.escom.k.scanner;
 
+import mx.ipn.escom.k.KLogger;
 import mx.ipn.escom.k.core.exception.ScannerException;
 import mx.ipn.escom.k.core.token.*;
 
@@ -14,6 +15,7 @@ public class Scanner {
     private static final Map<String, TokenName> keyWords;
     private static final Map<String, TokenName> operators;
     private static final Map<String, TokenName> constants;
+    private final KLogger logger;
 
     static {
         keyWords = new HashMap<>();
@@ -45,6 +47,8 @@ public class Scanner {
         this.source = source;
         this.current = 0;
         this.line = 1;
+
+        logger = KLogger.getInstance();
     }
 
     /*
@@ -92,9 +96,9 @@ public class Scanner {
                         match('=') ? TokenName.GREATER_EQUAL : TokenName.GREATER, line);
             case '"': return string();
         }
-        
-        throw new ScannerException(
-                "Character '" + c + "' not valid. Line: " + line);
+
+        logger.error(line, "Unexpected character.", new ScannerException());
+        return null;
     }
 
     /**
@@ -200,9 +204,8 @@ public class Scanner {
             }
         }
         else if(peek() == '.' && !Character.isDigit(peekNext())){
-            throw new ScannerException(
-                    "Digit expected after decimal dot. Line: " + line
-            );
+            logger.error(line, "Digit expected after decimal dot.", new ScannerException());
+            return null;
         }
 
         if(peek() == 'E' && (peekNext() == '+' || peekNext() == '-' || Character.isDigit(peekNext()))){
@@ -220,16 +223,14 @@ public class Scanner {
             }
         }
         else if(peek() == 'E' && !Character.isDigit(peekNext())){
-            throw new ScannerException(
-                    "Digit expected after E. Line: " + line
-            );
+            logger.error(line, "Digit expected after E.", new ScannerException());
+            return null;
         }
 
         int end = current;
 
         String lexeme = source.substring(begin, end);
 
-        // TODO: Detect the right type of data: int, double, float
         double value = Double.parseDouble(lexeme);
         return new TokenNumber(value, line);
     }
@@ -241,16 +242,14 @@ public class Scanner {
             advance();
 
             if (peek() == '\n') {
-                throw new ScannerException(
-                        "String was not closed before new line. Line: " + line++
-                );
+                logger.error(line, "String was not closed before new line.", new ScannerException());
+                return null;
             }
 
         }
         if (isAtEnd()) {
-           throw new ScannerException(
-                    "String was not closed properly. Line: " + line
-            );
+            logger.error(line, "Unterminated string.", new ScannerException());
+            return null;
         }
 
         // Consume the '"' that close the string
