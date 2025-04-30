@@ -1,6 +1,4 @@
-package mx.ipn.escom.k.core;
-
-import mx.ipn.escom.k.core.statement.*;
+package mx.ipn.escom.k.core.statement;
 
 public interface VisitorStatement<T> {
     T visitBlockStatement(BlockStatement statement);

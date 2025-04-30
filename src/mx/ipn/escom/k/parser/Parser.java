@@ -1,7 +1,7 @@
 package mx.ipn.escom.k.parser;
 
-import mx.ipn.escom.k.core.Expression;
-import mx.ipn.escom.k.core.Statement;
+import mx.ipn.escom.k.core.expression.Expression;
+import mx.ipn.escom.k.core.statement.Statement;
 import mx.ipn.escom.k.core.exception.ParserException;
 import mx.ipn.escom.k.core.AST;
 import mx.ipn.escom.k.core.expression.*;

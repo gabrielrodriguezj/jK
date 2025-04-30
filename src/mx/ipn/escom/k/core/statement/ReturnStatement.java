@@ -1,8 +1,6 @@
 package mx.ipn.escom.k.core.statement;
 
-import mx.ipn.escom.k.core.Expression;
-import mx.ipn.escom.k.core.Statement;
-import mx.ipn.escom.k.core.VisitorStatement;
+import mx.ipn.escom.k.core.expression.Expression;
 
 public record ReturnStatement(Expression value) implements Statement {
 

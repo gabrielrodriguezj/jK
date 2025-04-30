@@ -1,6 +1,7 @@
 package mx.ipn.escom.k.interpreter;
 
 import mx.ipn.escom.k.core.*;
+import mx.ipn.escom.k.core.statement.Statement;
 
 /**
  * Singleton pattern because we only need one interpreter and one global environment.

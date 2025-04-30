@@ -1,6 +1,4 @@
-package mx.ipn.escom.k.core;
-
-import mx.ipn.escom.k.core.expression.*;
+package mx.ipn.escom.k.core.expression;
 
 public interface VisitorExpression<T> {
     T visitAssignmentExpression(AssignmentExpression expression);

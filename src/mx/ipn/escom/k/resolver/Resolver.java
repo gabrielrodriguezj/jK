@@ -1,7 +1,7 @@
 package mx.ipn.escom.k.resolver;
 
 import mx.ipn.escom.k.core.AST;
-import mx.ipn.escom.k.core.Statement;
+import mx.ipn.escom.k.core.statement.Statement;
 import mx.ipn.escom.k.interpreter.Interpreter;
 import mx.ipn.escom.k.interpreter.VisitorImplementationInterpreter;
 

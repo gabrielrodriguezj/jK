@@ -1,7 +1,5 @@
 package mx.ipn.escom.k.core.expression;
 
-import mx.ipn.escom.k.core.Expression;
-import mx.ipn.escom.k.core.VisitorExpression;
 import mx.ipn.escom.k.token.TokenPunctuationMarks;
 
 import java.util.List;

@@ -1,7 +1,5 @@
 package mx.ipn.escom.k.core.statement;
 
-import mx.ipn.escom.k.core.Statement;
-import mx.ipn.escom.k.core.VisitorStatement;
 import mx.ipn.escom.k.core.expression.VariableExpression;
 import mx.ipn.escom.k.token.Token;
 

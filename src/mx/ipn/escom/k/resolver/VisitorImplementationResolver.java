@@ -1,9 +1,9 @@
 package mx.ipn.escom.k.resolver;
 
-import mx.ipn.escom.k.core.Expression;
-import mx.ipn.escom.k.core.Statement;
-import mx.ipn.escom.k.core.VisitorExpression;
-import mx.ipn.escom.k.core.VisitorStatement;
+import mx.ipn.escom.k.core.expression.Expression;
+import mx.ipn.escom.k.core.statement.Statement;
+import mx.ipn.escom.k.core.expression.VisitorExpression;
+import mx.ipn.escom.k.core.statement.VisitorStatement;
 import mx.ipn.escom.k.core.exception.SemanticException;
 import mx.ipn.escom.k.core.expression.*;
 import mx.ipn.escom.k.core.statement.*;
