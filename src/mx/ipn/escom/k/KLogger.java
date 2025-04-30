@@ -56,5 +56,10 @@ public class KLogger {
     public boolean hasRuntimeError() {
         return hasRuntimeError;
     }
+
+    public void reset(){
+        this.hasError = false;
+        this.hasRuntimeError = false;
+    }
 }
 

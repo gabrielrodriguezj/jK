@@ -15,6 +15,8 @@ import java.nio.file.Paths;
 
 public class K {
 
+    static KLogger logger = KLogger.getInstance();
+
     public static void main(String[] args) {
         if(args.length > 1) {
             System.out.println("More than the one argument expected. Usage : k [file.k]");
@@ -59,12 +61,13 @@ public class K {
 
             if(linea == null) break; // Press Ctrl + D
             execute(linea);
+
+            logger.reset();
         }
     }
 
     private static void execute(String source) {
         Interpreter interpreter = Interpreter.getInstance();
-        KLogger logger = KLogger.getInstance();
         try{
             Scanner scanner = new Scanner(source);
             if(logger.hasError()) return;
