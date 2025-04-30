@@ -2,7 +2,7 @@ package mx.ipn.escom.k.core;
 
 import mx.ipn.escom.k.core.statement.FunctionStatement;
 import mx.ipn.escom.k.interpreter.VisitorImplementationInterpreter;
-import mx.ipn.escom.k.token.TokenId;
+import mx.ipn.escom.k.core.token.TokenId;
 
 import java.util.List;
 

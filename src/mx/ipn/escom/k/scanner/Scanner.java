@@ -1,7 +1,7 @@
 package mx.ipn.escom.k.scanner;
 
 import mx.ipn.escom.k.core.exception.ScannerException;
-import mx.ipn.escom.k.token.*;
+import mx.ipn.escom.k.core.token.*;
 
 import java.util.HashMap;
 import java.util.Map;

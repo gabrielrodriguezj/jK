@@ -1,7 +1,7 @@
 package mx.ipn.escom.k.core;
 
 import mx.ipn.escom.k.core.exception.RuntimeError;
-import mx.ipn.escom.k.token.TokenId;
+import mx.ipn.escom.k.core.token.TokenId;
 
 import java.util.HashMap;
 import java.util.Map;

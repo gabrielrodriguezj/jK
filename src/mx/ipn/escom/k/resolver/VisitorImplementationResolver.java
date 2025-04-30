@@ -8,7 +8,7 @@ import mx.ipn.escom.k.core.exception.SemanticException;
 import mx.ipn.escom.k.core.expression.*;
 import mx.ipn.escom.k.core.statement.*;
 import mx.ipn.escom.k.interpreter.VisitorImplementationInterpreter;
-import mx.ipn.escom.k.token.TokenId;
+import mx.ipn.escom.k.core.token.TokenId;
 
 import java.util.HashMap;
 import java.util.List;

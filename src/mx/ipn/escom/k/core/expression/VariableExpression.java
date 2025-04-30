@@ -1,6 +1,6 @@
 package mx.ipn.escom.k.core.expression;
 
-import mx.ipn.escom.k.token.TokenId;
+import mx.ipn.escom.k.core.token.TokenId;
 
 public record VariableExpression(TokenId name) implements Expression {
 

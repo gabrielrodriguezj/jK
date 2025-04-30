@@ -1,4 +1,4 @@
-package mx.ipn.escom.k.token;
+package mx.ipn.escom.k.core.token;
 
 public class TokenString extends TokenConstant<String> {
 

@@ -1,6 +1,6 @@
 package mx.ipn.escom.k.core.expression;
 
-import mx.ipn.escom.k.token.Token;
+import mx.ipn.escom.k.core.token.Token;
 
 public record LogicalExpression(Expression left, Token operator, Expression right) implements Expression {
 

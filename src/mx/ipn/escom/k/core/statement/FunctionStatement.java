@@ -1,6 +1,6 @@
 package mx.ipn.escom.k.core.statement;
 
-import mx.ipn.escom.k.token.TokenId;
+import mx.ipn.escom.k.core.token.TokenId;
 
 import java.util.List;
 

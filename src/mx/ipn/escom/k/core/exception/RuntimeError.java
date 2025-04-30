@@ -1,6 +1,6 @@
 package mx.ipn.escom.k.core.exception;
 
-import mx.ipn.escom.k.token.Token;
+import mx.ipn.escom.k.core.token.Token;
 
 public class RuntimeError extends RuntimeException {
     final Token token;

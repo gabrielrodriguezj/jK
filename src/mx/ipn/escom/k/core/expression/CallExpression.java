@@ -1,6 +1,6 @@
 package mx.ipn.escom.k.core.expression;
 
-import mx.ipn.escom.k.token.TokenPunctuationMarks;
+import mx.ipn.escom.k.core.token.TokenPunctuationMarks;
 
 import java.util.List;
 

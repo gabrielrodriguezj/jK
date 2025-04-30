@@ -5,8 +5,8 @@ import mx.ipn.escom.k.core.exception.RuntimeError;
 import mx.ipn.escom.k.core.exception.SemanticException;
 import mx.ipn.escom.k.core.expression.*;
 import mx.ipn.escom.k.core.statement.*;
-import mx.ipn.escom.k.token.TokenId;
-import mx.ipn.escom.k.token.TokenName;
+import mx.ipn.escom.k.core.token.TokenId;
+import mx.ipn.escom.k.core.token.TokenName;
 
 import java.util.ArrayList;
 import java.util.HashMap;

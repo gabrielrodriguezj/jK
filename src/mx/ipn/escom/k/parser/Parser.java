@@ -7,7 +7,7 @@ import mx.ipn.escom.k.core.AST;
 import mx.ipn.escom.k.core.expression.*;
 import mx.ipn.escom.k.core.statement.*;
 import mx.ipn.escom.k.scanner.Scanner;
-import mx.ipn.escom.k.token.*;
+import mx.ipn.escom.k.core.token.*;
 
 import java.util.ArrayList;
 import java.util.Arrays;

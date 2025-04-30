@@ -1,4 +1,4 @@
-package mx.ipn.escom.k.token;
+package mx.ipn.escom.k.core.token;
 
 public class TokenReservedWord extends Token {
     public TokenReservedWord(TokenName tokenName, int line) {

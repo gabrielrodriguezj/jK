@@ -1,7 +1,7 @@
 package mx.ipn.escom.k.core.statement;
 
 import mx.ipn.escom.k.core.expression.VariableExpression;
-import mx.ipn.escom.k.token.Token;
+import mx.ipn.escom.k.core.token.Token;
 
 import java.util.List;
 
