@@ -45,7 +45,7 @@ public class Parser {
             declaration(statements);
         }
         catch (KError e) {
-            // Execute syncronization: panic mode
+            synchronize();
             return null;
         }
         return statements;
@@ -678,8 +678,7 @@ public class Parser {
 
     private void match(TokenName tt) throws KError{
         if (lookahead.getTokenName() == tt) {
-            previous = lookahead;
-            lookahead = scanner.next();
+            advance();
         } else {
             throw error(lookahead,"Expected " + tt);
         }
@@ -693,4 +692,70 @@ public class Parser {
         logger.error(token, message);
         return new KError();
     }
+
+    /**
+     * This method implements the recovery technique 'panic mode'
+     *
+     * Synchronizes the parser state to prevent cascading
+     * errors by advancing through tokens until a logical
+     * stopping point or synchronizing token is encountered.
+     *
+     * The method skips over tokens until it detects a token that
+     * marks the statement boundary, in this case a 'semicolon' or
+     * the beginning of a new construct (e.g., 'class', 'fun', etc.).
+     * It ensures that the parser can continue parsing without being
+     * affected by errors in preceding statements or expressions.
+     *
+     * Behavior:
+     * - Advances over tokens, starting from the current state.
+     * - If a semicolon (';') is encountered, it returns immediately.
+     * - If a token corresponding to the beginning of a new
+     *   statement or construct is encountered
+     *   (e.g., CLASS, FUN, VAR, etc.), it also returns.
+     * - Continues advancing until reaching the end-of-file (EOF) or a synchronization point.
+     *
+     * This method is designed to maintain the integrity of the
+     * parser state during error recovery.
+     */
+    private void synchronize() {
+        // Consume the token that raise the error
+        advance();
+
+        while (!isAtEnd()) {
+
+            // Stop the while when a statement has ended
+            if (previous.getTokenName() == TokenName.SEMICOLON){
+                return;
+            }
+
+            // This method is called from the method 'declaration'.
+            // Those 'token name' are some elements of the set
+            // 'first(Declaration)'
+            // Stop when start a new statement
+            switch (lookahead.getTokenName()) {
+                case CLASS:
+                case FUN:
+                case VAR:
+                case FOR:
+                case IF:
+                case WHILE:
+                case PRINT:
+                case RETURN:
+                    return;
+            }
+
+            // skip the tokens until a synchronization token
+            advance();
+        }
+    }
+
+    private void advance() {
+        previous = lookahead;
+        lookahead = scanner.next();
+    }
+
+    private boolean isAtEnd() {
+        return lookahead.getTokenName() == TokenName.EOF;
+    }
+
 }
