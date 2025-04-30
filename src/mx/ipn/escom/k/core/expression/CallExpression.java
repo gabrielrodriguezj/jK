@@ -9,10 +9,10 @@ import java.util.List;
 /**
  * @param arguments private final Token paren;
  */
-public record CallFunctionExpression(Expression callee, TokenPunctuationMarks paren, List<Expression> arguments) implements Expression {
+public record CallExpression(Expression callee, TokenPunctuationMarks paren, List<Expression> arguments) implements Expression {
 
     @Override
     public <T> T accept(VisitorExpression<T> visitor) {
-        return visitor.visitCallFunctionExpression(this);
+        return visitor.visitCallExpression(this);
     }
 }

@@ -126,7 +126,7 @@ public class VisitorImplementationInterpreter implements VisitorExpression<Objec
      * @return the value returned by the function, if it returns a value, if not, returns null.
      */
     @Override
-    public Object visitCallFunctionExpression(CallFunctionExpression expression) {
+    public Object visitCallExpression(CallExpression expression) {
 
         // Evaluate the callee element:
         // In the phrase: void main(), main is the callee.

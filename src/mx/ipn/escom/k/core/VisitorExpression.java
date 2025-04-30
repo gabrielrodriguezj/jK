@@ -5,7 +5,7 @@ import mx.ipn.escom.k.core.expression.*;
 public interface VisitorExpression<T> {
     T visitAssignmentExpression(AssignmentExpression expression);
     T visitArithmeticExpression(ArithmeticExpression expression);
-    T visitCallFunctionExpression(CallFunctionExpression expression);
+    T visitCallExpression(CallExpression expression);
     T visitGetExpression(GetExpression expression);
     T visitGroupingExpression(GroupingExpression expression);
     T visitLiteralExpression(LiteralExpression expression);

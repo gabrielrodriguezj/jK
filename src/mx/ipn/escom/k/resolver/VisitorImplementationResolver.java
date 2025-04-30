@@ -61,7 +61,7 @@ public class VisitorImplementationResolver implements VisitorExpression<Void>, V
     }
 
     @Override
-    public Void visitCallFunctionExpression(CallFunctionExpression expression) {
+    public Void visitCallExpression(CallExpression expression) {
         resolve(expression.callee());
 
         for (Expression argument : expression.arguments()) {
