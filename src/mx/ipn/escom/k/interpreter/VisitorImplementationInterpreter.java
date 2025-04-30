@@ -66,8 +66,8 @@ public class VisitorImplementationInterpreter implements VisitorExpression<Objec
                 else if(left instanceof String && right instanceof String){
                     return (String)left + (String)right;
                 }
-                throw new RuntimeError(null,
-                        "Operator '+' cannot be applied to the given operands"
+                throw new RuntimeError(expression.operator(),
+                        "Operands must be two numbers or two strings."
                 );
             }
             else{
@@ -97,26 +97,25 @@ public class VisitorImplementationInterpreter implements VisitorExpression<Objec
                                 return (Integer)left / (Integer)right;
                             }
 
-                            throw new ArithmeticException("Division by zero");
+                            throw new RuntimeError(expression.operator(), "Division by zero not allowed.");
                         }
                         else{
 
                             if((Double)right != 0){
                                 return (Double)left / (Double)right;
                             }
-                            throw new ArithmeticException("Division by zero");
+                            throw new RuntimeError(expression.operator(), "Division by zero not allowed.");
                         }
                     }
 
                 }
 
-                throw new RuntimeError(null,
-                        "Incompatible types for operator " + expression.operator()
-                );
+                throw new RuntimeError(expression.operator(),
+                        "Operands must be numbers.");
             }
         }
 
-        throw new RuntimeError(null,"Operation not valid");
+        throw new RuntimeError(null,"Operands must be numbers.");
     }
 
     /**
@@ -183,8 +182,8 @@ public class VisitorImplementationInterpreter implements VisitorExpression<Objec
                     return (Boolean)left || (Boolean)right;
             }
         }
-        throw new RuntimeError(null,
-                "Operands not valid for operator '" + expression.operator().getTokenName() + "'");
+        throw new RuntimeError(expression.operator(),
+                "Operands must be booleans.");
     }
 
     @Override
@@ -205,10 +204,8 @@ public class VisitorImplementationInterpreter implements VisitorExpression<Objec
                 }
                 return !left.equals(right);
             }
-            throw new RuntimeError(null,
-                    "Invalid types for operator '" + expression.operator().getTokenName() +
-                            "'"
-            );
+            throw new RuntimeError(expression.operator(),
+                    "The operator cannot be applied to different type operands.");
         }
 
         // Check relational operators
@@ -228,12 +225,11 @@ public class VisitorImplementationInterpreter implements VisitorExpression<Objec
                         return (Double)left >= (Double)right;
                 }
             }
-            throw new RuntimeError(null,
-                    "El operator '" + expression.operator().getTokenName() +
-                            "' is valid for non-boolean operands"
+            throw new RuntimeError(expression.operator(),
+                    "Operands must be two numbers"
             );
         }
-        throw new RuntimeError(null, "Operation not valid");
+        throw new RuntimeError(expression.operator(), "Operation not valid");
     }
 
     @Override
@@ -266,11 +262,12 @@ public class VisitorImplementationInterpreter implements VisitorExpression<Objec
                 result instanceof Boolean){
             return !(Boolean)result;
         }
-        throw new RuntimeError(null,
-                "The operator '" + expression.operator().getTokenName() +
-                        "cannot be applied to the type: " +
-                        result.getClass().getName()
-        );
+
+        if(expression.operator().getTokenName() == TokenName.BANG){
+            throw new RuntimeError(expression.operator(), "Operand must be a bool.");
+        }
+
+        throw new RuntimeError(expression.operator(), "Operand must be a number.");
     }
 
     @Override
@@ -331,8 +328,8 @@ public class VisitorImplementationInterpreter implements VisitorExpression<Objec
     public Void visitIfStatement(IfStatement statement) {
         Object condition = evaluate(statement.condition());
         if (!(condition instanceof Boolean)) {
-            throw new RuntimeException(
-                    "If condition must be a boolean");
+            throw new RuntimeError(statement.keyword(),
+                    "The condition must be boolean.");
         }
 
         if (((Boolean) condition)) {
@@ -348,8 +345,8 @@ public class VisitorImplementationInterpreter implements VisitorExpression<Objec
     public Void visitLoopStatement(LoopStatement statement) {
         Object condition = evaluate(statement.condition());
         if (!(condition instanceof Boolean)) {
-            throw new RuntimeException(
-                    "If condition must be a boolean");
+            throw new RuntimeError(statement.keyword(),
+                    "Loop's condition must be boolean");
         }
 
         while (((Boolean)condition)){

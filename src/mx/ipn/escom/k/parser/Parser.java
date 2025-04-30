@@ -197,6 +197,7 @@ public class Parser {
 
     private Statement forStatement() throws KError{
         match(TokenName.FOR);
+        Token keyword = previous();
         match(TokenName.LEFT_PAREN);
         Statement initializer = forStatementInit();
         Expression condition = forStatementCondition();
@@ -218,7 +219,7 @@ public class Parser {
         if (condition == null) {
             condition = new LiteralExpression(true);
         }
-        body = new LoopStatement(condition, body);
+        body = new LoopStatement(keyword, condition, body);
 
         // "Desugar" initialization
         if (initializer != null) {
@@ -299,13 +300,14 @@ public class Parser {
 
     private Statement ifStatement() throws KError{
         match(TokenName.IF);
+        Token keyword = previous();
         match(TokenName.LEFT_PAREN);
         Expression condition = expression();
         match(TokenName.RIGHT_PAREN);
         Statement thenBranch = statement();
         Statement elseBranch = elseStatement();
 
-        return new IfStatement(condition, thenBranch, elseBranch);
+        return new IfStatement(keyword, condition, thenBranch, elseBranch);
     }
 
     private Statement elseStatement() throws KError{
@@ -318,12 +320,13 @@ public class Parser {
 
     private Statement whileStatement() throws KError{
         match(TokenName.WHILE);
+        Token keyword = previous();
         match(TokenName.LEFT_PAREN);
         Expression condition = expression();
         match(TokenName.RIGHT_PAREN);
         Statement body = statement();
 
-        return new LoopStatement(condition, body);
+        return new LoopStatement(keyword, condition, body);
     }
 
     private Statement printStatement() throws KError{
