@@ -8,7 +8,7 @@ import java.util.List;
 public record BlockStatement(List<Statement> statements) implements Statement {
 
     @Override
-    public void accept(VisitorStatement visitor) {
-        visitor.visitBlockStatement(this);
+    public <T> T accept(VisitorStatement<T> visitor) {
+        return visitor.visitBlockStatement(this);
     }
 }

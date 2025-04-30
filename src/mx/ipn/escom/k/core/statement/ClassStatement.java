@@ -11,7 +11,7 @@ public record ClassStatement(Token name, VariableExpression superclass,
                              List<Statement> attributesAndMethods) implements Statement {
 
     @Override
-    public void accept(VisitorStatement visitor) {
-        visitor.visitClassStatement(this);
+    public <T> T accept(VisitorStatement<T> visitor) {
+        return visitor.visitClassStatement(this);
     }
 }

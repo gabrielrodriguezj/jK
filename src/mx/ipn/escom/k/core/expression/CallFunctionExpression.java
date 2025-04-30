@@ -12,7 +12,7 @@ import java.util.List;
 public record CallFunctionExpression(Expression callee, TokenPunctuationMarks paren, List<Expression> arguments) implements Expression {
 
     @Override
-    public Object accept(VisitorExpression visitor) {
+    public <T> T accept(VisitorExpression<T> visitor) {
         return visitor.visitCallFunctionExpression(this);
     }
 }

@@ -7,7 +7,7 @@ import mx.ipn.escom.k.core.VisitorStatement;
 public record ReturnStatement(Expression value) implements Statement {
 
     @Override
-    public void accept(VisitorStatement visitor) {
-        visitor.visitReturnStatement(this);
+    public <T> T accept(VisitorStatement<T> visitor) {
+        return visitor.visitReturnStatement(this);
     }
 }

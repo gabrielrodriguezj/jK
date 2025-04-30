@@ -7,7 +7,7 @@ import mx.ipn.escom.k.core.VisitorStatement;
 public record LoopStatement(Expression condition, Statement body) implements Statement {
 
     @Override
-    public void accept(VisitorStatement visitor) {
-        visitor.visitLoopStatement(this);
+    public <T> T accept(VisitorStatement<T> visitor) {
+        return visitor.visitLoopStatement(this);
     }
 }

@@ -7,7 +7,7 @@ import mx.ipn.escom.k.token.TokenId;
 public record AssignmentExpression(TokenId name, Expression value) implements Expression {
 
     @Override
-    public Object accept(VisitorExpression visitor) {
+    public <T> T accept(VisitorExpression<T> visitor) {
         return visitor.visitAssignmentExpression(this);
     }
 }

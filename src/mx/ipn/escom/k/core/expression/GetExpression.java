@@ -7,7 +7,7 @@ import mx.ipn.escom.k.token.Token;
 public record GetExpression(Expression object, Token name) implements Expression {
 
     @Override
-    public Object accept(VisitorExpression visitor) {
+    public <T> T accept(VisitorExpression<T> visitor) {
         return visitor.visitGetExpression(this);
     }
 }

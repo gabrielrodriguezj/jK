@@ -11,7 +11,7 @@ public record SuperExpression(Token method) implements Expression {
     // this.keyword = keyword;
 
     @Override
-    public Object accept(VisitorExpression visitor) {
+    public <T> T accept(VisitorExpression<T> visitor) {
         return visitor.visitSuperExpression(this);
     }
 }

@@ -1,5 +1,5 @@
 package mx.ipn.escom.k.core;
 
 public interface Statement {
-    void accept(VisitorStatement visitor);
+    <T> T accept(VisitorStatement<T> visitor);
 }

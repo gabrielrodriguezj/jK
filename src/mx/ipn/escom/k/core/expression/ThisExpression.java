@@ -11,7 +11,7 @@ public class ThisExpression implements Expression {
     }
 
     @Override
-    public Object accept(VisitorExpression visitor) {
+    public <T> T accept(VisitorExpression<T> visitor) {
         return visitor.visitThisExpression(this);
     }
 }

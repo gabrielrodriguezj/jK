@@ -9,7 +9,7 @@ import java.util.List;
 public record FunctionStatement(TokenId name, List<TokenId> params, BlockStatement body) implements Statement {
 
     @Override
-    public void accept(VisitorStatement visitor) {
-        visitor.visitFunctionStatement(this);
+    public <T> T accept(VisitorStatement<T> visitor) {
+        return visitor.visitFunctionStatement(this);
     }
 }
