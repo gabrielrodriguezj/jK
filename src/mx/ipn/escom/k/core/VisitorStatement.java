@@ -2,14 +2,14 @@ package mx.ipn.escom.k.core;
 
 import mx.ipn.escom.k.core.statement.*;
 
-public interface VisitorStatement {
-    void visitBlockStatement(BlockStatement statement);
-    void visitClassStatement(ClassStatement statement);
-    void visitExpressionStatement(ExpressionStatement statement);
-    void visitFunctionStatement(FunctionStatement statement);
-    void visitIfStatement(IfStatement statement);
-    void visitLoopStatement(LoopStatement statement);
-    void visitPrintStatement(PrintStatement statement);
-    void visitReturnStatement(ReturnStatement statement);
-    void visitVarStatement(VarStatement statement);
+public interface VisitorStatement<T> {
+    T visitBlockStatement(BlockStatement statement);
+    T visitClassStatement(ClassStatement statement);
+    T visitExpressionStatement(ExpressionStatement statement);
+    T visitFunctionStatement(FunctionStatement statement);
+    T visitIfStatement(IfStatement statement);
+    T visitLoopStatement(LoopStatement statement);
+    T visitPrintStatement(PrintStatement statement);
+    T visitReturnStatement(ReturnStatement statement);
+    T visitVarStatement(VarStatement statement);
 }

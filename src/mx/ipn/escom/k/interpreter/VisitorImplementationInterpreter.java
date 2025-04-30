@@ -13,7 +13,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-public class VisitorImplementationInterpreter implements VisitorExpression, VisitorStatement {
+public class VisitorImplementationInterpreter implements VisitorExpression<Object>, VisitorStatement<Void> {
 
     private final Environment globals;
     private Environment environment;
@@ -281,7 +281,7 @@ public class VisitorImplementationInterpreter implements VisitorExpression, Visi
     }
 
     @Override
-    public void visitBlockStatement(BlockStatement statement) {
+    public Void visitBlockStatement(BlockStatement statement) {
 
         // Keep the highest environment in the stack
         Environment blockEnvironment = new Environment(environment);
@@ -297,16 +297,20 @@ public class VisitorImplementationInterpreter implements VisitorExpression, Visi
         finally {
             this.environment = previous;
         }
+
+        return null;
     }
 
     @Override
-    public void visitClassStatement(ClassStatement statement) {
+    public Void visitClassStatement(ClassStatement statement) {
         throw new UnsupportedOperationException();
     }
 
     @Override
-    public void visitExpressionStatement(ExpressionStatement statement) {
+    public Void visitExpressionStatement(ExpressionStatement statement) {
         evaluate(statement.expression());
+
+        return null;
     }
 
     /**
@@ -314,16 +318,18 @@ public class VisitorImplementationInterpreter implements VisitorExpression, Visi
      * @param statement contains the name of the function, parameters and body of the function.
      */
     @Override
-    public void visitFunctionStatement(FunctionStatement statement) {
+    public Void visitFunctionStatement(FunctionStatement statement) {
         // Create the callable object for the function.
         KFunction function = new KFunction(statement, environment, false);
 
         // Define the function in the current environment.
         environment.define(statement.name().getId(), function);
+
+        return null;
     }
 
     @Override
-    public void visitIfStatement(IfStatement statement) {
+    public Void visitIfStatement(IfStatement statement) {
         Object condition = evaluate(statement.condition());
         if (!(condition instanceof Boolean)) {
             throw new RuntimeException(
@@ -335,10 +341,12 @@ public class VisitorImplementationInterpreter implements VisitorExpression, Visi
         } else if (statement.elseBranch() != null) {
             execute(statement.elseBranch());
         }
+
+        return null;
     }
 
     @Override
-    public void visitLoopStatement(LoopStatement statement) {
+    public Void visitLoopStatement(LoopStatement statement) {
         Object condition = evaluate(statement.condition());
         if (!(condition instanceof Boolean)) {
             throw new RuntimeException(
@@ -349,16 +357,20 @@ public class VisitorImplementationInterpreter implements VisitorExpression, Visi
             execute(statement.body());
             condition = evaluate(statement.condition());
         }
+
+        return null;
     }
 
     @Override
-    public void visitPrintStatement(PrintStatement statement) {
+    public Void visitPrintStatement(PrintStatement statement) {
         Object res = evaluate(statement.expression());
         System.out.println(res);
+
+        return null;
     }
 
     @Override
-    public void visitReturnStatement(ReturnStatement statement) {
+    public Void visitReturnStatement(ReturnStatement statement) {
         Object value = null;
         if (statement.value() != null) {
             value = evaluate(statement.value());
@@ -368,13 +380,15 @@ public class VisitorImplementationInterpreter implements VisitorExpression, Visi
     }
 
     @Override
-    public void visitVarStatement(VarStatement statement) {
+    public Void visitVarStatement(VarStatement statement) {
         Object init = null;
         if(statement.initializer() != null){
             init = evaluate(statement.initializer());
         }
 
         environment.define(statement.name().getId(), init);
+
+        return null;
     }
 
     void execute(Statement statement){

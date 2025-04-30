@@ -29,7 +29,7 @@ import java.util.Stack;
  *      visited in if statements. Logic operators are not
  *      short-circuited.
  */
-public class VisitorImplementationResolver implements VisitorExpression, VisitorStatement {
+public class VisitorImplementationResolver implements VisitorExpression<Void>, VisitorStatement<Void> {
 
     private enum FunctionType {
         NONE,
@@ -47,21 +47,21 @@ public class VisitorImplementationResolver implements VisitorExpression, Visitor
     }
 
     @Override
-    public Object visitAssignmentExpression(AssignmentExpression expression) {
+    public Void visitAssignmentExpression(AssignmentExpression expression) {
         resolve(expression.value());
         resolveLocal(expression.value(), expression.name());
         return null;
     }
 
     @Override
-    public Object visitArithmeticExpression(ArithmeticExpression expression) {
+    public Void visitArithmeticExpression(ArithmeticExpression expression) {
         resolve(expression.left());
         resolve(expression.right());
         return null;
     }
 
     @Override
-    public Object visitCallFunctionExpression(CallFunctionExpression expression) {
+    public Void visitCallFunctionExpression(CallFunctionExpression expression) {
         resolve(expression.callee());
 
         for (Expression argument : expression.arguments()) {
@@ -72,58 +72,58 @@ public class VisitorImplementationResolver implements VisitorExpression, Visitor
     }
 
     @Override
-    public Object visitGetExpression(GetExpression expression) {
+    public Void visitGetExpression(GetExpression expression) {
         return null;
     }
 
     @Override
-    public Object visitGroupingExpression(GroupingExpression expression) {
+    public Void visitGroupingExpression(GroupingExpression expression) {
         resolve(expression.expression());
         return null;
     }
 
     @Override
-    public Object visitLiteralExpression(LiteralExpression expression) {
+    public Void visitLiteralExpression(LiteralExpression expression) {
         return null;
     }
 
     @Override
-    public Object visitLogicalExpression(LogicalExpression expression) {
+    public Void visitLogicalExpression(LogicalExpression expression) {
         resolve(expression.left());
         resolve(expression.right());
         return null;
     }
 
     @Override
-    public Object visitRelationalExpression(RelationalExpression expression) {
+    public Void visitRelationalExpression(RelationalExpression expression) {
         resolve(expression.left());
         resolve(expression.right());
         return null;
     }
 
     @Override
-    public Object visitSetExpression(SetExpression expression) {
+    public Void visitSetExpression(SetExpression expression) {
         return null;
     }
 
     @Override
-    public Object visitSuperExpression(SuperExpression expression) {
+    public Void visitSuperExpression(SuperExpression expression) {
         return null;
     }
 
     @Override
-    public Object visitThisExpression(ThisExpression expression) {
+    public Void visitThisExpression(ThisExpression expression) {
         return null;
     }
 
     @Override
-    public Object visitUnaryExpression(UnaryExpression expression) {
+    public Void visitUnaryExpression(UnaryExpression expression) {
         resolve(expression.right());
         return null;
     }
 
     @Override
-    public Object visitVariableExpression(VariableExpression expression) {
+    public Void visitVariableExpression(VariableExpression expression) {
         if (!scopes.isEmpty() &&
                 scopes.peek().get(expression.name().getId()) == Boolean.FALSE) {
 
@@ -141,52 +141,64 @@ public class VisitorImplementationResolver implements VisitorExpression, Visitor
      * @param statement
      */
     @Override
-    public void visitBlockStatement(BlockStatement statement) {
+    public Void visitBlockStatement(BlockStatement statement) {
         beginScope();
         resolve(statement.statements());
         endScope();
+
+        return null;
     }
 
     @Override
-    public void visitClassStatement(ClassStatement statement) {
-
+    public Void visitClassStatement(ClassStatement statement) {
+        return null;
     }
 
     @Override
-    public void visitExpressionStatement(ExpressionStatement statement) {
+    public Void visitExpressionStatement(ExpressionStatement statement) {
         resolve(statement.expression());
+
+        return null;
     }
 
     @Override
-    public void visitFunctionStatement(FunctionStatement statement) {
+    public Void visitFunctionStatement(FunctionStatement statement) {
         declare(statement.name());
         define(statement.name());
 
         resolveFunction(statement, FunctionType.FUNCTION);
+
+        return null;
     }
 
     @Override
-    public void visitIfStatement(IfStatement statement) {
+    public Void visitIfStatement(IfStatement statement) {
         resolve(statement.condition());
         resolve(statement.thenBranch());
         if (statement.elseBranch() != null){
             resolve(statement.elseBranch());
         }
+
+        return null;
     }
 
     @Override
-    public void visitLoopStatement(LoopStatement statement) {
+    public Void visitLoopStatement(LoopStatement statement) {
         resolve(statement.condition());
         resolve(statement.body());
+
+        return null;
     }
 
     @Override
-    public void visitPrintStatement(PrintStatement statement) {
+    public Void visitPrintStatement(PrintStatement statement) {
         resolve(statement.expression());
+
+        return null;
     }
 
     @Override
-    public void visitReturnStatement(ReturnStatement statement) {
+    public Void visitReturnStatement(ReturnStatement statement) {
         if (currentFunction == FunctionType.NONE) {
             throw new SemanticException(
                     "Can't return from top-level code.");
@@ -195,21 +207,27 @@ public class VisitorImplementationResolver implements VisitorExpression, Visitor
         if (statement.value() != null) {
             resolve(statement.value());
         }
+
+        return null;
     }
 
     @Override
-    public void visitVarStatement(VarStatement statement) {
+    public Void visitVarStatement(VarStatement statement) {
         declare(statement.name());
         if (statement.initializer() != null) {
             resolve(statement.initializer());
         }
         define(statement.name());
+
+        return null;
     }
 
-    private void resolve(List<Statement> statements) {
+    private Void resolve(List<Statement> statements) {
         for (Statement statement : statements) {
             resolve(statement);
         }
+
+        return null;
     }
 
     // Using the visitor pattern. These methods are similar to the evaluate() and execute() methods in Interpreter
