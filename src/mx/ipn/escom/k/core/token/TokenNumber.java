@@ -8,7 +8,7 @@ public class TokenNumber extends TokenConstant<Number> {
 
     @Override
     public String toString(){
-        return "<" + tokenName + ", value: " +  value + ", line: " + line + ">";
+        return value.toString();
     }
 
 }

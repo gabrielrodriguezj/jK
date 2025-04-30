@@ -8,6 +8,6 @@ public class TokenString extends TokenConstant<String> {
 
     @Override
     public String toString(){
-        return "<" + tokenName + ", value: " +  value.substring(1, value.length() - 1) + ", line: " + line + ">";
+        return "\"" + value + "\"";
     }
 }

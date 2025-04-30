@@ -15,6 +15,6 @@ public class TokenId extends Token {
 
     @Override
     public String toString(){
-        return "<" + tokenName + ", name: " +  id + ", line: " + line + ">";
+        return id;
     }
 }

@@ -1,22 +1,63 @@
 package mx.ipn.escom.k.core.token;
 
 public enum TokenName {
-    // Tokens de un sólo caracter
-    LEFT_PAREN, RIGHT_PAREN, LEFT_BRACE, RIGHT_BRACE,
-    COMMA, DOT, MINUS, PLUS, SEMICOLON, SLASH, STAR,
+    // Tokens with just one character
+    LEFT_PAREN("("),
+    RIGHT_PAREN(")"),
+    LEFT_BRACE("{"),
+    RIGHT_BRACE("}"),
+    COMMA(","),
+    DOT("."),
+    MINUS("-"),
+    PLUS("+"),
+    SEMICOLON(";"),
+    SLASH("/"),
+    STAR("*"),
 
-    // Tokens de uno o dos caracteres
-    BANG, BANG_EQUAL,
-    EQUAL, EQUAL_EQUAL,
-    GREATER, GREATER_EQUAL,
-    LESS, LESS_EQUAL,
+    // Tokens with one or two characters
+    BANG("!"),
+    BANG_EQUAL("!="),
+    EQUAL("="),
+    EQUAL_EQUAL("=="),
+    GREATER(">"),
+    GREATER_EQUAL(">="),
+    LESS("<"),
+    LESS_EQUAL("<="),
 
-    // Literales
-    IDENTIFIER, STRING, NUMBER,
+    // Literals
+    IDENTIFIER("id"),
+    STRING("''"),
+    NUMBER("0.0"),
 
-    // Palabras clave
-    AND, CLASS, ELSE, FALSE, FUN, FOR, IF, NULL, OR,
-    PRINT, RETURN, SUPER, THIS, TRUE, VAR, WHILE, EXTENDS,
+    // Keyword
+    AND("and"),
+    CLASS("class"),
+    ELSE("else"),
+    FALSE("false"),
+    FUN("fun"),
+    FOR("for"),
+    IF("if"),
+    NULL("null"),
+    OR("or"),
+    PRINT("print"),
+    RETURN("return"),
+    SUPER("super"),
+    THIS("this"),
+    TRUE("true"),
+    VAR("var"),
+    WHILE("while"),
+    EXTENDS("extends"),
 
-    EOF
+    EOF("$");
+
+    private final String lexeme;
+
+    TokenName(String lexeme) {
+        this.lexeme = lexeme;
+    }
+
+    @Override
+    public String toString() {
+        return lexeme;
+    }
 }
