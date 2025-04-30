@@ -25,6 +25,10 @@ public class KLogger {
         throw e;
     }
 
+    public void error(int line, String message) {
+        report(line, "", message);
+    }
+
     public void error(Token token, String message) {
         if (token.getTokenName() == TokenName.EOF) {
             report(token.getLine(), " at end", message);

@@ -1,8 +1,9 @@
 package mx.ipn.escom.k.parser;
 
+import mx.ipn.escom.k.KLogger;
+import mx.ipn.escom.k.core.exception.KError;
 import mx.ipn.escom.k.core.expression.Expression;
 import mx.ipn.escom.k.core.statement.Statement;
-import mx.ipn.escom.k.core.exception.ParserException;
 import mx.ipn.escom.k.core.AST;
 import mx.ipn.escom.k.core.expression.*;
 import mx.ipn.escom.k.core.statement.*;
@@ -14,37 +15,44 @@ import java.util.Arrays;
 import java.util.List;
 
 public class Parser {
-    private Scanner scanner;
-    private Token preanalisis;
+    private final Scanner scanner;
+    private Token lookahead;
     private Token previous;
+    private final KLogger logger;
 
     public Parser(Scanner scanner) {
         this.scanner = scanner;
-        this.preanalisis = scanner.next();
+        this.lookahead = scanner.next();
         this.previous = null;
+
+        logger = KLogger.getInstance();
     }
 
-    public AST parse() throws ParserException {
+    public AST parse() {
         List<Statement> statements = program();
 
-        if (preanalisis.getTokenName() != TokenName.EOF) {
-            String message = "An error found in the code";
-            throw new ParserException(message);
+        if (lookahead.getTokenName() != TokenName.EOF) {
+            error(lookahead, "An error found in the code.");
         }
 
         return new AST(statements);
     }
 
-    private List<Statement> program() throws ParserException {
+    private List<Statement> program() {
         List<Statement> statements = new ArrayList<>();
 
-        declaration(statements);
-
+        try {
+            declaration(statements);
+        }
+        catch (KError e) {
+            // Execute syncronization: panic mode
+            return null;
+        }
         return statements;
     }
 
-    private void declaration(List<Statement> statements) throws ParserException {
-        switch (preanalisis.getTokenName()) {
+    private void declaration(List<Statement> statements) throws KError{
+        switch (lookahead.getTokenName()) {
             case CLASS:
                 Statement classDecl = classDeclaration();
                 statements.add(classDecl);
@@ -84,7 +92,7 @@ public class Parser {
         }
     }
 
-    private Statement classDeclaration() throws ParserException {
+    private Statement classDeclaration() throws KError{
         match(TokenName.CLASS);
         match(TokenName.IDENTIFIER);
         Token name = previous();
@@ -97,8 +105,8 @@ public class Parser {
         return new ClassStatement(name, superClass, attributesAndMethods);
     }
 
-    private VariableExpression classInher() throws ParserException {
-        if (preanalisis.getTokenName() == TokenName.EXTENDS) {
+    private VariableExpression classInher() throws KError{
+        if (lookahead.getTokenName() == TokenName.EXTENDS) {
             match(TokenName.EXTENDS);
             match(TokenName.IDENTIFIER);
             TokenId nameSuperClass = (TokenId) previous();
@@ -107,20 +115,20 @@ public class Parser {
         return null;
     }
 
-    private void classElement(List<Statement> attributesAndMethods) throws ParserException {
-        if(preanalisis.getTokenName() == TokenName.VAR){
+    private void classElement(List<Statement> attributesAndMethods) throws KError{
+        if(lookahead.getTokenName() == TokenName.VAR){
             Statement attribute = varDeclaration();
             attributesAndMethods.add(attribute);
             classElement(attributesAndMethods);
         }
-        else if(preanalisis.getTokenName() == TokenName.FUN){
+        else if(lookahead.getTokenName() == TokenName.FUN){
             Statement method = funDeclaration();
             attributesAndMethods.add(method);
             classElement(attributesAndMethods);
         }
     }
 
-    private Statement funDeclaration() throws ParserException {
+    private Statement funDeclaration() throws KError{
         match(TokenName.FUN);
         match(TokenName.IDENTIFIER);
         TokenId name = (TokenId)previous();
@@ -132,7 +140,7 @@ public class Parser {
         return new FunctionStatement(name, parameters, (BlockStatement) body);
     }
 
-    private Statement varDeclaration() throws ParserException {
+    private Statement varDeclaration() throws KError{
         match(TokenName.VAR);
         match(TokenName.IDENTIFIER);
         TokenId name = (TokenId) previous();
@@ -142,16 +150,16 @@ public class Parser {
         return new VarStatement(name, init);
     }
 
-    private Expression varInit() throws ParserException {
-        if (preanalisis.getTokenName() == TokenName.EQUAL) {
+    private Expression varInit() throws KError{
+        if (lookahead.getTokenName() == TokenName.EQUAL) {
             match(TokenName.EQUAL);
             return expression();
         }
         return null;
     }
 
-    private Statement statement() throws ParserException {
-        switch (preanalisis.getTokenName()) {
+    private Statement statement() throws KError{
+        switch (lookahead.getTokenName()) {
             case BANG:
             case MINUS:
             case TRUE:
@@ -177,21 +185,17 @@ public class Parser {
             case LEFT_BRACE:
                 return block();
             default:
-                String message = "Error in the line " +
-                        preanalisis.getLine() +
-                        " close of token " +
-                        preanalisis.getTokenName();
-                throw new ParserException(message);
+                throw error(lookahead, "Statement expected.");
         }
     }
 
-    private Statement exprStatement() throws ParserException {
+    private Statement exprStatement() throws KError{
         Expression expr = expression();
         match(TokenName.SEMICOLON);
         return new ExpressionStatement(expr);
     }
 
-    private Statement forStatement() throws ParserException {
+    private Statement forStatement() throws KError{
         match(TokenName.FOR);
         match(TokenName.LEFT_PAREN);
         Statement initializer = forStatementInit();
@@ -223,8 +227,8 @@ public class Parser {
         return body;
     }
 
-    private Statement forStatementInit() throws ParserException {
-        switch (preanalisis.getTokenName()) {
+    private Statement forStatementInit() throws KError{
+        switch (lookahead.getTokenName()) {
             case VAR:
                 return varDeclaration();
             case BANG:
@@ -245,17 +249,13 @@ public class Parser {
                 match(TokenName.SEMICOLON);
                 return null;
             default:
-                String message = "Error in the line " +
-                        preanalisis.getLine() +
-                        " close of " + preanalisis.getTokenName() +
-                        " An declaration or expression was expected";
-                throw new ParserException(message);
+                throw error(lookahead, "A declaration or expression was expected.");
         }
 
     }
 
-    private Expression forStatementCondition() throws ParserException {
-        switch (preanalisis.getTokenName()) {
+    private Expression forStatementCondition() throws KError{
+        switch (lookahead.getTokenName()) {
             case BANG:
             case MINUS:
             case TRUE:
@@ -274,17 +274,13 @@ public class Parser {
                 match(TokenName.SEMICOLON);
                 return null;
             default:
-                String message = "Error in the line " +
-                        preanalisis.getLine() +
-                        " close of " + preanalisis.getTokenName() +
-                        " A condition was expected";
-                throw new ParserException(message);
+                throw error(lookahead, "A condition or ';' was expected.");
         }
 
     }
 
-    private Expression forStatementIncrease() throws ParserException {
-        switch (preanalisis.getTokenName()) {
+    private Expression forStatementIncrease() throws KError{
+        switch (lookahead.getTokenName()) {
             case BANG:
             case MINUS:
             case TRUE:
@@ -301,7 +297,7 @@ public class Parser {
         return null;
     }
 
-    private Statement ifStatement() throws ParserException {
+    private Statement ifStatement() throws KError{
         match(TokenName.IF);
         match(TokenName.LEFT_PAREN);
         Expression condition = expression();
@@ -312,15 +308,15 @@ public class Parser {
         return new IfStatement(condition, thenBranch, elseBranch);
     }
 
-    private Statement elseStatement() throws ParserException {
-        if (preanalisis.getTokenName() == TokenName.ELSE) {
+    private Statement elseStatement() throws KError{
+        if (lookahead.getTokenName() == TokenName.ELSE) {
             match(TokenName.ELSE);
             return statement();
         }
         return null;
     }
 
-    private Statement whileStatement() throws ParserException {
+    private Statement whileStatement() throws KError{
         match(TokenName.WHILE);
         match(TokenName.LEFT_PAREN);
         Expression condition = expression();
@@ -330,7 +326,7 @@ public class Parser {
         return new LoopStatement(condition, body);
     }
 
-    private Statement printStatement() throws ParserException {
+    private Statement printStatement() throws KError{
         match(TokenName.PRINT);
         Expression expr = expression();
         match(TokenName.SEMICOLON);
@@ -338,7 +334,7 @@ public class Parser {
         return new PrintStatement(expr);
     }
 
-    private Statement returnStatement() throws ParserException {
+    private Statement returnStatement() throws KError{
         match(TokenName.RETURN);
         Expression value = returnExpressionOptional();
         match(TokenName.SEMICOLON);
@@ -346,8 +342,8 @@ public class Parser {
         return new ReturnStatement(value);
     }
 
-    private Expression returnExpressionOptional() throws ParserException {
-        switch (preanalisis.getTokenName()) {
+    private Expression returnExpressionOptional() throws KError{
+        switch (lookahead.getTokenName()) {
             case BANG:
             case MINUS:
             case TRUE:
@@ -364,7 +360,7 @@ public class Parser {
         return null;
     }
 
-    private Statement block() throws ParserException {
+    private Statement block() throws KError{
         match(TokenName.LEFT_BRACE);
         List<Statement> statements = new ArrayList<>();
         declaration(statements);
@@ -377,8 +373,8 @@ public class Parser {
     Bloque de expresiones
      */
 
-    private Expression expression() throws ParserException {
-        switch (preanalisis.getTokenName()) {
+    private Expression expression() throws KError{
+        switch (lookahead.getTokenName()) {
             case BANG:
             case MINUS:
             case TRUE:
@@ -392,22 +388,20 @@ public class Parser {
             case THIS:
                 return assignment();
             default:
-                String message = "Error in the line " +
-                        preanalisis.getLine() +
-                        " close of " + preanalisis.getTokenName() +
-                        " . An expression was expected";
-                throw new ParserException(message);
+                throw error(lookahead, "An expression was expected.");
+
         }
     }
 
-    private Expression assignment() throws ParserException {
+    private Expression assignment() throws KError{
         Expression expr = logicOr();
         return assignmentOptional(expr);
     }
 
-    private Expression assignmentOptional(Expression expr) throws ParserException {
-        if (preanalisis.getTokenName() == TokenName.EQUAL) {
+    private Expression assignmentOptional(Expression expr) throws KError{
+        if (lookahead.getTokenName() == TokenName.EQUAL) {
             match(TokenName.EQUAL);
+            Token equal = previous();
             Expression value = expression();
 
             if (expr instanceof VariableExpression) {
@@ -418,19 +412,19 @@ public class Parser {
                 return new SetExpression(get.object(), get.name(), value);
             }
 
-            throw new ParserException("Assignment expression bad formed. Left side is non assignable");
+            throw error(equal,"Invalid assignment target.");
 
         }
         return expr;
     }
 
-    private Expression logicOr() throws ParserException {
+    private Expression logicOr() throws KError{
         Expression expr = logicAnd();
         return logicOrPrime(expr);
     }
 
-    private Expression logicOrPrime(Expression left) throws ParserException {
-        if (preanalisis.getTokenName() == TokenName.OR) {
+    private Expression logicOrPrime(Expression left) throws KError{
+        if (lookahead.getTokenName() == TokenName.OR) {
             match(TokenName.OR);
             Token operator = previous();
             Expression right = logicAnd();
@@ -441,13 +435,13 @@ public class Parser {
         return left;
     }
 
-    private Expression logicAnd() throws ParserException {
+    private Expression logicAnd() throws KError{
         Expression expr = equality();
         return logicAndPrime(expr);
     }
 
-    private Expression logicAndPrime(Expression left) throws ParserException {
-        if (preanalisis.getTokenName() == TokenName.AND) {
+    private Expression logicAndPrime(Expression left) throws KError{
+        if (lookahead.getTokenName() == TokenName.AND) {
             match(TokenName.AND);
             Token operator = previous();
             Expression right = equality();
@@ -458,16 +452,16 @@ public class Parser {
         return left;
     }
 
-    private Expression equality() throws ParserException {
+    private Expression equality() throws KError{
         Expression expr = comparison();
         return equalityPrime(expr);
     }
 
-    private Expression equalityPrime(Expression left) throws ParserException {
-        switch (preanalisis.getTokenName()) {
+    private Expression equalityPrime(Expression left) throws KError{
+        switch (lookahead.getTokenName()) {
             case BANG_EQUAL:
             case EQUAL_EQUAL:
-                match(preanalisis.getTokenName()); //!= o ==
+                match(lookahead.getTokenName()); //!= o ==
                 Token operator = previous();
                 Expression right = comparison();
                 Expression expr = new RelationalExpression(left, operator, right);
@@ -476,18 +470,18 @@ public class Parser {
         return left;
     }
 
-    private Expression comparison() throws ParserException {
+    private Expression comparison() throws KError{
         Expression expr = term();
         return comparisonPrime(expr);
     }
 
-    private Expression comparisonPrime(Expression left) throws ParserException {
-        switch (preanalisis.getTokenName()) {
+    private Expression comparisonPrime(Expression left) throws KError{
+        switch (lookahead.getTokenName()) {
             case GREATER:
             case GREATER_EQUAL:
             case LESS:
             case LESS_EQUAL:
-                match(preanalisis.getTokenName()); // <, <=, >, >=
+                match(lookahead.getTokenName()); // <, <=, >, >=
                 Token operator = previous();
                 Expression right = term();
                 Expression expr = new RelationalExpression(left, operator, right);
@@ -497,16 +491,16 @@ public class Parser {
         return left;
     }
 
-    private Expression term() throws ParserException {
+    private Expression term() throws KError{
         Expression expr = factor();
         return termPrime(expr);
     }
 
-    private Expression termPrime(Expression left) throws ParserException {
-        switch (preanalisis.getTokenName()) {
+    private Expression termPrime(Expression left) throws KError{
+        switch (lookahead.getTokenName()) {
             case MINUS:
             case PLUS:
-                match(preanalisis.getTokenName()); // MINUS o PLUS
+                match(lookahead.getTokenName()); // MINUS o PLUS
                 Token operator = previous();
                 Expression right = factor();
                 Expression expr = new ArithmeticExpression(left, operator, right);
@@ -515,16 +509,16 @@ public class Parser {
         return left;
     }
 
-    private Expression factor() throws ParserException {
+    private Expression factor() throws KError{
         Expression expr = unary();
         return factorPrime(expr);
     }
 
-    private Expression factorPrime(Expression left) throws ParserException {
-        switch (preanalisis.getTokenName()) {
+    private Expression factorPrime(Expression left) throws KError{
+        switch (lookahead.getTokenName()) {
             case SLASH:
             case STAR:
-                match(preanalisis.getTokenName()); // SLASH o STAR
+                match(lookahead.getTokenName()); // SLASH o STAR
                 Token operator = previous();
                 Expression right = unary();
                 Expression expr = new ArithmeticExpression(left, operator, right);
@@ -533,8 +527,8 @@ public class Parser {
         return left;
     }
 
-    private Expression unary() throws ParserException {
-        switch (preanalisis.getTokenName()) {
+    private Expression unary() throws KError{
+        switch (lookahead.getTokenName()) {
             case BANG:
                 match(TokenName.BANG);
                 Token operator = previous();
@@ -550,10 +544,10 @@ public class Parser {
         }
     }
 
-    private Expression call() throws ParserException {
+    private Expression call() throws KError{
         Expression expr = primary();
 
-        switch (preanalisis.getTokenName()) {
+        switch (lookahead.getTokenName()) {
             case LEFT_PAREN:
             case DOT:
                 expr = callPrime(expr);
@@ -562,8 +556,8 @@ public class Parser {
         return expr;
     }
 
-    private Expression callPrime(Expression expr) throws ParserException {
-        switch (preanalisis.getTokenName()) {
+    private Expression callPrime(Expression expr) throws KError{
+        switch (lookahead.getTokenName()) {
             case LEFT_PAREN:
                 match(TokenName.LEFT_PAREN);
                 List<Expression> lstArguments = arguments();
@@ -581,8 +575,8 @@ public class Parser {
         return expr;
     }
 
-    private Expression primary() throws ParserException {
-        switch (preanalisis.getTokenName()) {
+    private Expression primary() throws KError{
+        switch (lookahead.getTokenName()) {
             case TRUE:
                 match(TokenName.TRUE);
                 return new LiteralExpression(true);
@@ -616,16 +610,17 @@ public class Parser {
                 match(TokenName.IDENTIFIER);
                 return new SuperExpression(previous());
         }
-        throw new ParserException("Expression not expected");
+        throw error(lookahead,"Token not valid.");
+
     }
 
     /*
     Bloque de funciones auxiliares
      */
 
-    private List<TokenId> parameters() throws ParserException {
+    private List<TokenId> parameters() throws KError{
         List<TokenId> params = new ArrayList<>();
-        if (preanalisis.getTokenName() == TokenName.IDENTIFIER) {
+        if (lookahead.getTokenName() == TokenName.IDENTIFIER) {
             match(TokenName.IDENTIFIER);
             TokenId name = (TokenId) previous();
             params.add(name);
@@ -635,8 +630,8 @@ public class Parser {
         return params;
     }
 
-    private void parametersPrime(List<TokenId> params) throws ParserException {
-        if (preanalisis.getTokenName() == TokenName.COMMA) {
+    private void parametersPrime(List<TokenId> params) throws KError{
+        if (lookahead.getTokenName() == TokenName.COMMA) {
             match(TokenName.COMMA);
             match(TokenName.IDENTIFIER);
             TokenId name = (TokenId) previous();
@@ -645,10 +640,10 @@ public class Parser {
         }
     }
 
-    private List<Expression> arguments() throws ParserException {
+    private List<Expression> arguments() throws KError{
         List<Expression> lstArguments = new ArrayList<>();
 
-        switch (preanalisis.getTokenName()) {
+        switch (lookahead.getTokenName()) {
             case BANG:
             case MINUS:
             case TRUE:
@@ -668,8 +663,8 @@ public class Parser {
         return lstArguments;
     }
 
-    private void argumentsPrime(List<Expression> lstArguments) throws ParserException {
-        if (preanalisis.getTokenName() == TokenName.COMMA) {
+    private void argumentsPrime(List<Expression> lstArguments) {
+        if (lookahead.getTokenName() == TokenName.COMMA) {
             match(TokenName.COMMA);
             Expression expr = expression();
             lstArguments.add(expr);
@@ -677,20 +672,21 @@ public class Parser {
         }
     }
 
-    private void match(TokenName tt) throws ParserException {
-        if (preanalisis.getTokenName() == tt) {
-            previous = preanalisis;
-            preanalisis = scanner.next();
+    private void match(TokenName tt) throws KError{
+        if (lookahead.getTokenName() == tt) {
+            previous = lookahead;
+            lookahead = scanner.next();
         } else {
-            String message = "Error in the line " +
-                    preanalisis.getLine() +
-                    ". Expected " + tt +
-                    " but founded " + preanalisis.getTokenName();
-            throw new ParserException(message);
+            throw error(lookahead,"Expected " + tt);
         }
     }
 
     private Token previous() {
         return this.previous;
+    }
+
+    private KError error(Token token, String message) {
+        logger.error(token, message);
+        return new KError();
     }
 }

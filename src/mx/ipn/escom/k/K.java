@@ -69,9 +69,9 @@ public class K {
             Scanner scanner = new Scanner(source);
             if(logger.hasError()) return;
 
-
             Parser parser = new Parser(scanner);
             AST ast = parser.parse();
+            if(logger.hasError()) return;
 
             Resolver resolver = new Resolver(interpreter);
             resolver.analyze(ast);

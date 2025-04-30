@@ -1,7 +1,7 @@
 package mx.ipn.escom.k.scanner;
 
 import mx.ipn.escom.k.KLogger;
-import mx.ipn.escom.k.core.exception.ScannerException;
+import mx.ipn.escom.k.core.exception.ScannerError;
 import mx.ipn.escom.k.core.token.*;
 
 import java.util.HashMap;
@@ -97,7 +97,7 @@ public class Scanner {
             case '"': return string();
         }
 
-        logger.error(line, "Unexpected character.", new ScannerException());
+        logger.error(line, "Unexpected character.", new ScannerError());
         return null;
     }
 
@@ -204,7 +204,7 @@ public class Scanner {
             }
         }
         else if(peek() == '.' && !Character.isDigit(peekNext())){
-            logger.error(line, "Digit expected after decimal dot.", new ScannerException());
+            logger.error(line, "Digit expected after decimal dot.", new ScannerError());
             return null;
         }
 
@@ -223,7 +223,7 @@ public class Scanner {
             }
         }
         else if(peek() == 'E' && !Character.isDigit(peekNext())){
-            logger.error(line, "Digit expected after E.", new ScannerException());
+            logger.error(line, "Digit expected after E.", new ScannerError());
             return null;
         }
 
@@ -242,13 +242,13 @@ public class Scanner {
             advance();
 
             if (peek() == '\n') {
-                logger.error(line, "String was not closed before new line.", new ScannerException());
+                logger.error(line, "String was not closed before new line.", new ScannerError());
                 return null;
             }
 
         }
         if (isAtEnd()) {
-            logger.error(line, "Unterminated string.", new ScannerException());
+            logger.error(line, "Unterminated string.", new ScannerError());
             return null;
         }
 

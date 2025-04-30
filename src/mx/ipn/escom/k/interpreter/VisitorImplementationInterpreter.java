@@ -2,7 +2,6 @@ package mx.ipn.escom.k.interpreter;
 
 import mx.ipn.escom.k.core.*;
 import mx.ipn.escom.k.core.exception.RuntimeError;
-import mx.ipn.escom.k.core.exception.SemanticException;
 import mx.ipn.escom.k.core.expression.*;
 import mx.ipn.escom.k.core.statement.*;
 import mx.ipn.escom.k.core.token.TokenId;
@@ -67,7 +66,7 @@ public class VisitorImplementationInterpreter implements VisitorExpression<Objec
                 else if(left instanceof String && right instanceof String){
                     return (String)left + (String)right;
                 }
-                throw new SemanticException(
+                throw new RuntimeError(null,
                         "Operator '+' cannot be applied to the given operands"
                 );
             }
@@ -111,13 +110,13 @@ public class VisitorImplementationInterpreter implements VisitorExpression<Objec
 
                 }
 
-                throw new SemanticException(
+                throw new RuntimeError(null,
                         "Incompatible types for operator " + expression.operator()
                 );
             }
         }
 
-        throw new SemanticException("Operation not valid");
+        throw new RuntimeError(null,"Operation not valid");
     }
 
     /**
@@ -184,7 +183,7 @@ public class VisitorImplementationInterpreter implements VisitorExpression<Objec
                     return (Boolean)left || (Boolean)right;
             }
         }
-        throw new SemanticException(
+        throw new RuntimeError(null,
                 "Operands not valid for operator '" + expression.operator().getTokenName() + "'");
     }
 
@@ -206,7 +205,7 @@ public class VisitorImplementationInterpreter implements VisitorExpression<Objec
                 }
                 return !left.equals(right);
             }
-            throw new SemanticException(
+            throw new RuntimeError(null,
                     "Invalid types for operator '" + expression.operator().getTokenName() +
                             "'"
             );
@@ -229,12 +228,12 @@ public class VisitorImplementationInterpreter implements VisitorExpression<Objec
                         return (Double)left >= (Double)right;
                 }
             }
-            throw new SemanticException(
+            throw new RuntimeError(null,
                     "El operator '" + expression.operator().getTokenName() +
                             "' is valid for non-boolean operands"
             );
         }
-        throw new SemanticException("Operation not valid");
+        throw new RuntimeError(null, "Operation not valid");
     }
 
     @Override
@@ -267,7 +266,7 @@ public class VisitorImplementationInterpreter implements VisitorExpression<Objec
                 result instanceof Boolean){
             return !(Boolean)result;
         }
-        throw new SemanticException(
+        throw new RuntimeError(null,
                 "The operator '" + expression.operator().getTokenName() +
                         "cannot be applied to the type: " +
                         result.getClass().getName()
