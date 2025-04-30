@@ -1,10 +1,10 @@
 package mx.ipn.escom.k.resolver;
 
+import mx.ipn.escom.k.KLogger;
 import mx.ipn.escom.k.core.expression.Expression;
 import mx.ipn.escom.k.core.statement.Statement;
 import mx.ipn.escom.k.core.expression.VisitorExpression;
 import mx.ipn.escom.k.core.statement.VisitorStatement;
-import mx.ipn.escom.k.core.exception.SemanticException;
 import mx.ipn.escom.k.core.expression.*;
 import mx.ipn.escom.k.core.statement.*;
 import mx.ipn.escom.k.interpreter.VisitorImplementationInterpreter;
@@ -41,9 +41,11 @@ public class VisitorImplementationResolver implements VisitorExpression<Void>, V
     private final VisitorImplementationInterpreter interpreter;
     private final Stack<Map<String, Boolean>> scopes = new Stack<>();
     private FunctionType currentFunction = FunctionType.NONE;
+    private final KLogger logger;
 
     public VisitorImplementationResolver(VisitorImplementationInterpreter interpreter){
         this.interpreter = interpreter;
+        logger = KLogger.getInstance();
     }
 
     @Override
@@ -127,9 +129,8 @@ public class VisitorImplementationResolver implements VisitorExpression<Void>, V
         if (!scopes.isEmpty() &&
                 scopes.peek().get(expression.name().getId()) == Boolean.FALSE) {
 
-            throw new SecurityException(
-                    "Can't read local '" + expression.name() + "' variable in its own initializer."
-            );
+            logger.error(expression.name(),
+                    "Can't read local variable in its own initializer.");
         }
 
         resolveLocal(expression, expression.name());
@@ -200,8 +201,7 @@ public class VisitorImplementationResolver implements VisitorExpression<Void>, V
     @Override
     public Void visitReturnStatement(ReturnStatement statement) {
         if (currentFunction == FunctionType.NONE) {
-            throw new SemanticException(
-                    "Can't return from top-level code.");
+            logger.error(statement.keyword(), "Can't return from top-level code.");
         }
 
         if (statement.value() != null) {
@@ -257,7 +257,7 @@ public class VisitorImplementationResolver implements VisitorExpression<Void>, V
 
         Map<String, Boolean> scope = scopes.peek();
         if (scope.containsKey(name.getId())) {
-            throw new SemanticException(
+            logger.error(name,
                     "Already a variable with this name in this scope.");
         }
 

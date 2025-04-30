@@ -336,10 +336,11 @@ public class Parser {
 
     private Statement returnStatement() throws KError{
         match(TokenName.RETURN);
+        Token keyword = previous();
         Expression value = returnExpressionOptional();
         match(TokenName.SEMICOLON);
 
-        return new ReturnStatement(value);
+        return new ReturnStatement(keyword, value);
     }
 
     private Expression returnExpressionOptional() throws KError{

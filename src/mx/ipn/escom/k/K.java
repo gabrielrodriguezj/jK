@@ -75,6 +75,7 @@ public class K {
 
             Resolver resolver = new Resolver(interpreter);
             resolver.analyze(ast);
+            if(logger.hasError()) return;
 
             Interpreter.getInstance().interpret(ast);
         }
