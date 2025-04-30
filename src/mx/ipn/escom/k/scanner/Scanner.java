@@ -236,7 +236,7 @@ public class Scanner {
     }
 
     Token string() {
-        int begin = current-1;
+        int begin = current;
 
         while (peek() != '"' && !isAtEnd()) {
             advance();
@@ -252,10 +252,10 @@ public class Scanner {
             return null;
         }
 
+        int end = current;
+
         // Consume the '"' that close the string
         advance();
-
-        int end = current;
 
         // The lexeme of a string is the string value with the quotes
         // In this case, we remove the quotes from the lexeme for getting

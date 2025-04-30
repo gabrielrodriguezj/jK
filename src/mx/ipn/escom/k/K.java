@@ -68,7 +68,6 @@ public class K {
 
     private static void execute(String source) {
         Interpreter interpreter = Interpreter.getInstance();
-        try{
             Scanner scanner = new Scanner(source);
             if(logger.hasError()) return;
 
@@ -81,10 +80,5 @@ public class K {
             if(logger.hasError()) return;
 
             Interpreter.getInstance().interpret(ast);
-        }
-        catch (Exception ex){
-            ex.printStackTrace();
-        }
-
     }
 }
