@@ -1,6 +1,6 @@
-Implementar un "logger" y maneje la variable "hasError" y reemplazar por las excepciones
 // TODO: Implement a stack of environments instead of a linked list. The name of the environment is the name of the concept is "Lexical scopes"
-
+// TODO: Detect the right type of data: int, double, float
+// TODO: Execute syncronization: panic mode
 
 "
 Most of the modern languages use lexical scoping.

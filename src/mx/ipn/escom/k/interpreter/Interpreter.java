@@ -1,6 +1,8 @@
 package mx.ipn.escom.k.interpreter;
 
+import mx.ipn.escom.k.KLogger;
 import mx.ipn.escom.k.core.*;
+import mx.ipn.escom.k.core.exception.RuntimeError;
 import mx.ipn.escom.k.core.statement.Statement;
 
 /**
@@ -28,8 +30,15 @@ public class Interpreter  {
     }
 
     public void interpret(AST ast) {
-        for(Statement statement : ast.statements()){
-            statement.accept(this.interpreter);
+        try{
+            for(Statement statement : ast.statements()){
+                statement.accept(this.interpreter);
+            }
         }
+        catch (RuntimeError error){
+            KLogger logger = KLogger.getInstance();
+            logger.runtimeError(error);
+        }
+
     }
 }
