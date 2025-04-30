@@ -1,10 +1,10 @@
 package mx.ipn.escom.k;
 
 import mx.ipn.escom.k.core.AST;
-import mx.ipn.escom.k.core.Environment;
 import mx.ipn.escom.k.interpreter.Interpreter;
 import mx.ipn.escom.k.parser.Parser;
 import mx.ipn.escom.k.scanner.Scanner;
+import mx.ipn.escom.k.resolver.Resolver;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -63,11 +63,16 @@ public class K {
     }
 
     private static void execute(String source) {
+        Interpreter interpreter = Interpreter.getInstance();
+
         try{
             Scanner scanner = new Scanner(source);
 
             Parser parser = new Parser(scanner);
             AST ast = parser.parse();
+
+            Resolver resolver = new Resolver(interpreter);
+            resolver.analyze(ast);
 
             Interpreter.getInstance().interpret(ast);
         }

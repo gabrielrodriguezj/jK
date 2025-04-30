@@ -22,6 +22,10 @@ public class Interpreter  {
         return instance;
     }
 
+    public VisitorImplementationInterpreter getInterpreterVisitor(){
+        return this.interpreter;
+    }
+
     public void interpret(AST ast) {
         for(Statement statement : ast.statements()){
             statement.accept(this.interpreter);

@@ -125,7 +125,7 @@ public class Parser {
         match(TokenName.IDENTIFIER);
         TokenId name = (TokenId)previous();
         match(TokenName.LEFT_PAREN);
-        List<Token> parameters = parameters();
+        List<TokenId> parameters = parameters();
         match(TokenName.RIGHT_PAREN);
         Statement body = block();
 
@@ -623,11 +623,11 @@ public class Parser {
     Bloque de funciones auxiliares
      */
 
-    private List<Token> parameters() throws ParserException {
-        List<Token> params = new ArrayList<>();
+    private List<TokenId> parameters() throws ParserException {
+        List<TokenId> params = new ArrayList<>();
         if (preanalisis.getTokenName() == TokenName.IDENTIFIER) {
             match(TokenName.IDENTIFIER);
-            Token name = previous();
+            TokenId name = (TokenId) previous();
             params.add(name);
             parametersPrime(params);
         }
@@ -635,11 +635,11 @@ public class Parser {
         return params;
     }
 
-    private void parametersPrime(List<Token> params) throws ParserException {
+    private void parametersPrime(List<TokenId> params) throws ParserException {
         if (preanalisis.getTokenName() == TokenName.COMMA) {
             match(TokenName.COMMA);
             match(TokenName.IDENTIFIER);
-            Token name = previous();
+            TokenId name = (TokenId) previous();
             params.add(name);
             parametersPrime(params);
         }

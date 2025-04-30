@@ -5,16 +5,23 @@ import mx.ipn.escom.k.core.exception.RuntimeError;
 import mx.ipn.escom.k.core.exception.SemanticException;
 import mx.ipn.escom.k.core.expression.*;
 import mx.ipn.escom.k.core.statement.*;
+import mx.ipn.escom.k.token.TokenId;
 import mx.ipn.escom.k.token.TokenName;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public class VisitorImplementationInterpreter implements VisitorExpression, VisitorStatement {
 
+    private final Environment globals;
     private Environment environment;
+    private final Map<Expression, Integer> locals = new HashMap<>();
+
     public VisitorImplementationInterpreter(Environment environment) {
-        this.environment = environment;
+        this.globals = environment;
+        this.environment = globals;
     }
 
     private Object evaluate(Expression expression){
@@ -23,9 +30,14 @@ public class VisitorImplementationInterpreter implements VisitorExpression, Visi
 
     @Override
     public Object visitAssignmentExpression(AssignmentExpression expression) {
-
         Object value = evaluate(expression.value());
-        environment.assign(expression.name(), value);
+
+        Integer distance = locals.get(expression);
+        if (distance != null) {
+            environment.assignAt(distance, expression.name(), value);
+        } else {
+            globals.assign(expression.name(), value);
+        }
 
         return value;
     }
@@ -264,28 +276,27 @@ public class VisitorImplementationInterpreter implements VisitorExpression, Visi
 
     @Override
     public Object visitVariableExpression(VariableExpression expression) {
-        return environment.get(expression.name());
-    }
-
-    void execute(Statement statement){
-        statement.accept(this);
+        //return environment.get(expression.name());
+        return lookUpVariable(expression.name(), expression);
     }
 
     @Override
     public void visitBlockStatement(BlockStatement statement) {
 
         // Keep the highest environment in the stack
-        // TODO: Implement a stack of environments instead of a linked list
-        Environment local = new Environment(environment);
-        Environment previous = environment;
+        Environment blockEnvironment = new Environment(environment);
+        Environment previous = this.environment;
 
-        this.environment = local;
+        try{
+            this.environment = blockEnvironment;
 
-        for(Statement stmt : statement.statements()){
-            execute(stmt);
+            for(Statement stmt : statement.statements()){
+                execute(stmt);
+            }
         }
-
-        this.environment = previous;
+        finally {
+            this.environment = previous;
+        }
     }
 
     @Override
@@ -364,6 +375,23 @@ public class VisitorImplementationInterpreter implements VisitorExpression, Visi
         }
 
         environment.define(statement.name().getId(), init);
+    }
+
+    void execute(Statement statement){
+        statement.accept(this);
+    }
+
+    public void resolve(Expression expr, int depth) {
+        locals.put(expr, depth);
+    }
+
+    private Object lookUpVariable(TokenId name, Expression expr) {
+        Integer distance = locals.get(expr);
+        if (distance != null) {
+            return environment.getAt(distance, name.getId());
+        } else {
+            return globals.get(name);
+        }
     }
 
 }
